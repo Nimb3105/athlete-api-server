@@ -1,0 +1,174 @@
+package main
+
+import (
+	"be/config"
+	"be/database"
+	"be/internal/controllers"
+	"be/internal/repositories"
+	"be/internal/routes"
+	"be/internal/services"
+	"context"
+	"log"
+	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+)
+
+func main() {
+
+	// Tải cấu hình
+	cfg := config.LoadConfig()
+
+	// Kết nối MongoDB
+	mongoDB, err := database.ConnectMongoDB(cfg)
+	if err != nil {
+		log.Fatalf("Failed to connect to MongoDB: %v", err)
+	}
+	defer mongoDB.Close(context.Background())
+
+	// Khởi tạo repository
+	userRepo := repositories.NewUserRepository(mongoDB.UserCollection,mongoDB.Database)
+	coachRepo := repositories.NewCoachRepository(mongoDB.CoachCollection,mongoDB.Database)
+	athleteRepo := repositories.NewAthleteRepository(mongoDB.AthleteCollection,mongoDB.Database)
+	sportAthleteRepo := repositories.NewSportAthleteRepository(mongoDB.SportAthleteCollection)
+	sportRepo := repositories.NewSportRepository(mongoDB.SportCollection,mongoDB.Database)
+	exerciseRepo := repositories.NewExerciseRepository(mongoDB.ExerciseCollection,mongoDB.Database)
+	trainingExerciseRepo := repositories.NewTrainingExerciseRepository(mongoDB.TrainingExerciseCollection)
+	trainingScheduleRepo := repositories.NewTrainingScheduleRepository(mongoDB.TrainingScheduleCollection,mongoDB.Database)
+	TrainingScheduleUserRepo := repositories.NewTrainingScheduleUserRepository(mongoDB.TrainingScheduleUserCollection)
+	notificationRepo := repositories.NewNotificationRepository(mongoDB.NotificationCollection)
+	reminderRepo := repositories.NewReminderRepository(mongoDB.ReminderCollection)
+	achivementRepo := repositories.NewAchievementRepository(mongoDB.AchivementCollection)
+	athleteMatchRepo := repositories.NewAthleteMatchRepository(mongoDB.AthleteMatchCollection)
+	coachCertificationRepo := repositories.NewCoachCertificationRepository(mongoDB.CoachCertificationCollection)
+	feedbackRepo := repositories.NewFeedbackRepository(mongoDB.FeedbackCollection)
+	groupRepo := repositories.NewGroupRepository(mongoDB.GroupCollection,mongoDB.Database)
+	groupMemberRepo := repositories.NewGroupMemberRepository(mongoDB.GroupCollection)
+	healthRepo := repositories.NewHealthRepository(mongoDB.HealthCollection,mongoDB.Database)
+	injuryRepo := repositories.NewInjuryRepository(mongoDB.InjuryCollection)
+	matchScheduleRepo := repositories.NewMatchScheduleRepository(mongoDB.MatchScheduleCollection,mongoDB.Database)
+	medicalHistoryRepo := repositories.NewMedicalHistoryRepository(mongoDB.MedicalHistoryCollection)
+	messageRepo := repositories.NewMessageRepository(mongoDB.MessageCollection)
+	nutritionPlanRepo := repositories.NewNutritionPlanRepository(mongoDB.NutritionPlanCollection,mongoDB.Database)
+	nutritionMealRepo := repositories.NewNutritionMealRepository(mongoDB.NutritionMealCollection)
+	performanceRepo := repositories.NewPerformanceRepository(mongoDB.PerformanceCollection)
+	progressRepo := repositories.NewProgressRepository(mongoDB.ProgressCollection)
+	teamRepo := repositories.NewTeamRepository(mongoDB.TeamCollection,mongoDB.Database)
+	temaMemberRepo := repositories.NewTeamMemberRepository(mongoDB.TeamMemberCollection)
+	tournamentRepo := repositories.NewTournamentRepository(mongoDB.TournamentCollection,mongoDB.Database)
+
+	// Khởi tạo service
+	userService := services.NewUserService(userRepo)
+	coachService := services.NewCoachService(coachRepo)
+	athleteService := services.NewAthleteService(athleteRepo)
+	sportAthleteService := services.NewSportAthleteService(sportAthleteRepo)
+	sportService := services.NewSportService(sportRepo)
+	exerciseService := services.NewExerciseService(exerciseRepo)
+	trainingExerciseService := services.NewTrainingExerciseService(trainingExerciseRepo)
+	trainingScheduleService := services.NewTrainingScheduleService(trainingScheduleRepo)
+	notificationService := services.NewNotificationService(notificationRepo)
+	reminderService := services.NewReminderService(reminderRepo)
+	TrainingScheduleUserService := services.NewTrainingScheduleUserService(TrainingScheduleUserRepo, notificationService, reminderService, trainingScheduleRepo)
+	achivementService := services.NewAchievementService(achivementRepo)
+	athleteMatchService := services.NewAthleteMatchService(athleteMatchRepo)
+	coachCertificationService := services.NewCoachCertificationService(coachCertificationRepo)
+	feedbackService := services.NewFeedbackService(feedbackRepo)
+	groupService := services.NewGroupService(groupRepo)
+	groupMemberService := services.NewGroupMemberService(groupMemberRepo)
+	healthService := services.NewHealthService(healthRepo)
+	injuryService := services.NewInjuryService(injuryRepo)
+	matchScheduleService := services.NewMatchScheduleService(matchScheduleRepo)
+	medicalHistoryService := services.NewMedicalHistoryService(medicalHistoryRepo)
+	messageService := services.NewMessageService(messageRepo)
+	nutritionPlanService := services.NewNutritionPlanService(nutritionPlanRepo)
+	nutritionMealService := services.NewNutritionMealService(nutritionMealRepo)
+	performanceService := services.NewPerformanceService(performanceRepo)
+	progressService := services.NewProgressService(progressRepo)
+	teamService := services.NewTeamService(teamRepo)
+	temaMemberService := services.NewTeamMemberService(temaMemberRepo)
+	tournamentService := services.NewTournamentService(tournamentRepo)
+
+	// Khởi tạo controller
+	userController := controllers.NewUserController(userService)
+	coachController := controllers.NewCoachController(coachService)
+	athleteController := controllers.NewAthleteController(athleteService)
+	sportAthleteController := controllers.NewSportAthleteController(sportAthleteService)
+	sportController := controllers.NewSportController(sportService)
+	exerciseController := controllers.NewExerciseController(exerciseService)
+	trainingExerciseController := controllers.NewTrainingExerciseController(trainingExerciseService)
+	TrainingScheduleUserController := controllers.NewTrainingScheduleUserController(TrainingScheduleUserService)
+	trainingScheduleController := controllers.NewTrainingScheduleController(trainingScheduleService)
+	imageController := controllers.NewImageController()
+	notificationController := controllers.NewNotificationController(notificationService)
+	reminderController := controllers.NewReminderController(reminderService)
+	achivementController := controllers.NewAchievementController(achivementService)
+	athleteMatchController := controllers.NewAthleteMatchController(athleteMatchService)
+	coachCertificationController := controllers.NewCoachCertificationController(coachCertificationService)
+	feedbackController := controllers.NewFeedbackController(feedbackService)
+	groupController := controllers.NewGroupController(groupService)
+	groupMemberController := controllers.NewGroupMemberController(groupMemberService)
+	healthController := controllers.NewHealthController(healthService)
+	injuryController := controllers.NewInjuryController(injuryService)
+	matchScheduleController := controllers.NewMatchScheduleController(matchScheduleService)
+	medicalHistoryController := controllers.NewMedicalHistoryController(medicalHistoryService)
+	messageController := controllers.NewMessageController(messageService)
+	nutritionPlanController := controllers.NewNutritionPlanController(nutritionPlanService)
+	nutritionMealController := controllers.NewNutritionMealController(nutritionMealService)
+	performanceController := controllers.NewPerformanceController(performanceService)
+	progressController := controllers.NewProgressController(progressService)
+	teamController := controllers.NewTeamController(teamService)
+	temaMemberController := controllers.NewTeamMemberController(temaMemberService)
+	tournamentController := controllers.NewTournamentController(tournamentService)
+
+	// Khởi tạo router Gin
+	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // Allow Flutter frontend
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Access-Control-Allow-Origin"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	// Gắn routes
+	routes.SetupUserRoutes(r, userController)
+	routes.SetupCoachRoutes(r, coachController)
+	routes.SetupAthleteRoutes(r, athleteController)
+	routes.SetupSportAthleteRoutes(r, sportAthleteController)
+	routes.SetupSportRoutes(r, sportController)
+	routes.SetupExerciseRoutes(r, exerciseController)
+	routes.SetupTrainingExerciseRoutes(r, trainingExerciseController)
+	routes.SetupTrainingScheduleUserRoutes(r, TrainingScheduleUserController)
+	routes.SetupTrainingScheduleRoutes(r, trainingScheduleController)
+	routes.SetupImageRoutes(r, imageController)
+	routes.SetupNotificationRoutes(r, notificationController)
+	routes.SetupReminderRoutes(r, reminderController)
+	routes.SetupAchievementRoutes(r, achivementController)
+	routes.SetupAthleteMatchRoutes(r, athleteMatchController)
+	routes.SetupCoachCertificationRoutes(r,coachCertificationController)
+	routes.SetupFeedbackRoutes(r,feedbackController)
+	routes.SetupGroupRoutes(r,groupController)
+	routes.SetupGroupMemberRoutes(r,groupMemberController)
+	routes.SetupHealthRoutes(r,healthController)
+	routes.SetupInjuryRoutes(r,injuryController)
+	routes.SetupMatchScheduleRoutes(r,matchScheduleController)
+	routes.SetupMedicalHistoryRoutes(r,medicalHistoryController)
+	routes.SetupMessageRoutes(r,messageController)
+	routes.SetupNutritionMealRoutes(r,nutritionMealController)
+	routes.SetupNutritionPlanRoutes(r,nutritionPlanController)
+	routes.SetupPerformanceRoutes(r,performanceController)
+	routes.SetupProgressRoutes(r,progressController)
+	routes.SetupTeamMemberRoutes(r,temaMemberController)
+	routes.SetupTeamRoutes(r,teamController)
+	routes.SetupTournamentRoutes(r,tournamentController)
+
+
+	// Chạy server
+	log.Printf("Server running on port %s", cfg.Port)
+	if err := r.Run(":" + cfg.Port); err != nil {
+		log.Fatalf("Failed to run server: %v", err)
+	}
+}

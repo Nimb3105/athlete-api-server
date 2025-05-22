@@ -1,0 +1,105 @@
+package database
+
+import (
+	"be/config"
+	"context"
+	"fmt"
+	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+// MongoDB chứa client và các collection
+type MongoDB struct {
+	Client                         *mongo.Client
+	Database                       *mongo.Database
+	UserCollection                 *mongo.Collection
+	CoachCollection                *mongo.Collection
+	AthleteCollection              *mongo.Collection
+	SportAthleteCollection         *mongo.Collection
+	SportCollection                *mongo.Collection
+	ExerciseCollection             *mongo.Collection
+	TrainingScheduleCollection     *mongo.Collection
+	TrainingExerciseCollection     *mongo.Collection
+	TrainingScheduleUserCollection *mongo.Collection
+	NotificationCollection         *mongo.Collection
+	ReminderCollection             *mongo.Collection
+	AchivementCollection           *mongo.Collection
+	AthleteMatchCollection         *mongo.Collection
+	CoachCertificationCollection   *mongo.Collection
+	FeedbackCollection             *mongo.Collection
+	GroupCollection                *mongo.Collection
+	GroupMemberCollection          *mongo.Collection
+	HealthCollection               *mongo.Collection
+	InjuryCollection               *mongo.Collection
+	MatchScheduleCollection        *mongo.Collection
+	MedicalHistoryCollection       *mongo.Collection
+	MessageCollection              *mongo.Collection
+	NutritionPlanCollection        *mongo.Collection
+	NutritionMealCollection        *mongo.Collection
+	PerformanceCollection          *mongo.Collection
+	ProgressCollection             *mongo.Collection
+	TournamentCollection           *mongo.Collection
+	TeamMemberCollection           *mongo.Collection
+	TeamCollection                 *mongo.Collection
+}
+
+// ConnectMongoDB khởi tạo kết nối tới MongoDB
+func ConnectMongoDB(config *config.Config) (*MongoDB, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	clientOptions := options.Client().ApplyURI(config.MongoURI)
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to MongoDB: %v", err)
+	}
+
+	// Kiểm tra kết nối
+	err = client.Ping(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to ping MongoDB: %v", err)
+	}
+
+	db := client.Database(config.MongoDatabase)
+
+	return &MongoDB{
+		Client:                         client,
+		Database:                       db,
+		UserCollection:                 db.Collection("users"),
+		CoachCollection:                db.Collection("coaches"),
+		AthleteCollection:              db.Collection("athletes"),
+		SportAthleteCollection:         db.Collection("sport_athletes"),
+		SportCollection:                db.Collection("sports"),
+		ExerciseCollection:             db.Collection("exercises"),
+		TrainingScheduleCollection:     db.Collection("training_schedules"),
+		TrainingScheduleUserCollection: db.Collection("training_schedule_users"),
+		TrainingExerciseCollection:     db.Collection("training_exercises"),
+		NotificationCollection:         db.Collection("notifications"),
+		ReminderCollection:             db.Collection("reminders"),
+		AchivementCollection:           db.Collection("achivements"),
+		AthleteMatchCollection:         db.Collection("athlete_matches"),
+		CoachCertificationCollection:   db.Collection("coach_certifications"),
+		FeedbackCollection:             db.Collection("feedbacks"),
+		GroupCollection:                db.Collection("groups"),
+		GroupMemberCollection:          db.Collection("group_members"),
+		HealthCollection:               db.Collection("healths"),
+		InjuryCollection:               db.Collection("injuries"),
+		MatchScheduleCollection:        db.Collection("match_schedules"),
+		MedicalHistoryCollection:       db.Collection("medical_histories"),
+		MessageCollection:              db.Collection("messages"),
+		NutritionPlanCollection:        db.Collection("nutrition_plans"),
+		NutritionMealCollection:        db.Collection("nutrition_meals"),
+		PerformanceCollection:          db.Collection("performances"),
+		ProgressCollection:             db.Collection("progresses"),
+		TournamentCollection:           db.Collection("tournaments"),
+		TeamMemberCollection:           db.Collection("team_members"),
+		TeamCollection:                 db.Collection("teams"),
+	}, nil
+}
+
+// Close đóng kết nối MongoDB
+func (m *MongoDB) Close(ctx context.Context) error {
+	return m.Client.Disconnect(ctx)
+}
