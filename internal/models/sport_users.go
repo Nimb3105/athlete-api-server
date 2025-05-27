@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type SportAthlete struct {
+type SportUser struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	SportID   primitive.ObjectID `bson:"sportId" json:"sportId"`
 	UserID    primitive.ObjectID `bson:"userId" json:"userId"` // AthleteID

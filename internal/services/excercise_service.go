@@ -22,11 +22,17 @@ func (s *ExerciseService) Create(ctx context.Context, exercise *models.Exercise)
 	if exercise.Name == "" {
 		return nil, errors.New("exercise name is required")
 	}
-	if exercise.Type == "" {
-		return nil, errors.New("exercise type is required")
+	if exercise.BodyPart == "" {
+		return nil, errors.New("exercise bodyPart is required")
 	}
-	if exercise.Duration < 0 {
-		return nil, errors.New("duration cannot be negative")
+	if exercise.Equipment == "" {
+		return nil, errors.New("exercise Equipment is negative")
+	}
+	if exercise.Target == "" {
+		return nil, errors.New("exercise Target is negative")
+	}
+	if len(exercise.Instructions) == 0 {
+		return nil, errors.New("exercise instructions are required")
 	}
 
 	return s.repo.Create(ctx, exercise)
@@ -47,17 +53,20 @@ func (s *ExerciseService) GetAll(ctx context.Context, page, limit int64) ([]mode
 }
 
 func (s *ExerciseService) Update(ctx context.Context, exercise *models.Exercise) (*models.Exercise, error) {
-	if exercise.ID.IsZero() {
-		return nil, errors.New("exercise ID is required")
-	}
 	if exercise.Name == "" {
 		return nil, errors.New("exercise name is required")
 	}
-	if exercise.Type == "" {
-		return nil, errors.New("exercise type is required")
+	if exercise.BodyPart == "" {
+		return nil, errors.New("exercise bodyPart is required")
 	}
-	if exercise.Duration < 0 {
-		return nil, errors.New("duration cannot be negative")
+	if exercise.Equipment == "" {
+		return nil, errors.New("exercise Equipment is negative")
+	}
+	if exercise.Target == "" {
+		return nil, errors.New("exercise Target is negative")
+	}
+	if len(exercise.Instructions) == 0 {
+		return nil, errors.New("exercise instructions are required")
 	}
 
 	return s.repo.Update(ctx, exercise)

@@ -5,10 +5,11 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-const(
+
+const (
 	RoleAdmin     = "admin"
-    RoleUser      = "athlete"
-    RoleModerator = "coach"
+	RoleUser      = "athlete"
+	RoleModerator = "coach"
 )
 
 // User represents the base user model

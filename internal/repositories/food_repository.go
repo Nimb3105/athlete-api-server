@@ -13,15 +13,16 @@ import (
 )
 
 // NutritionMealRepository provides CRUD methods for NutritionMeal
-type NutritionMealRepository struct {
+type FoodRepository struct {
 	collection *mongo.Collection
+	db         *mongo.Database
 }
 
-func NewNutritionMealRepository(collection *mongo.Collection) *NutritionMealRepository {
-	return &NutritionMealRepository{collection}
+func NewFoodRepository(collection *mongo.Collection, db *mongo.Database) *FoodRepository {
+	return &FoodRepository{collection: collection, db: db}
 }
 
-func (r *NutritionMealRepository) Create(ctx context.Context, nutritionMeal *models.NutritionMeal) (*models.NutritionMeal, error) {
+func (r *FoodRepository) Create(ctx context.Context, nutritionMeal *models.Food) (*models.Food, error) {
 	nutritionMeal.CreatedAt = time.Now()
 	nutritionMeal.UpdatedAt = time.Now()
 
@@ -34,13 +35,13 @@ func (r *NutritionMealRepository) Create(ctx context.Context, nutritionMeal *mod
 	return nutritionMeal, nil
 }
 
-func (r *NutritionMealRepository) GetByID(ctx context.Context, id string) (*models.NutritionMeal, error) {
+func (r *FoodRepository) GetByID(ctx context.Context, id string) (*models.Food, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
 
-	var nutritionMeal models.NutritionMeal
+	var nutritionMeal models.Food
 	err = r.collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&nutritionMeal)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -52,7 +53,7 @@ func (r *NutritionMealRepository) GetByID(ctx context.Context, id string) (*mode
 	return &nutritionMeal, nil
 }
 
-func (r *NutritionMealRepository) GetByNutritionPlanID(ctx context.Context, nutritionPlanID string) ([]models.NutritionMeal, error) {
+func (r *FoodRepository) GetByNutritionPlanID(ctx context.Context, nutritionPlanID string) ([]models.Food, error) {
 	objectID, err := primitive.ObjectIDFromHex(nutritionPlanID)
 	if err != nil {
 		return nil, err
@@ -64,7 +65,7 @@ func (r *NutritionMealRepository) GetByNutritionPlanID(ctx context.Context, nutr
 	}
 	defer cursor.Close(ctx)
 
-	var nutritionMeals []models.NutritionMeal
+	var nutritionMeals []models.Food
 	if err = cursor.All(ctx, &nutritionMeals); err != nil {
 		return nil, err
 	}
@@ -72,7 +73,7 @@ func (r *NutritionMealRepository) GetByNutritionPlanID(ctx context.Context, nutr
 	return nutritionMeals, nil
 }
 
-func (r *NutritionMealRepository) GetAll(ctx context.Context, page, limit int64) ([]models.NutritionMeal, error) {
+func (r *FoodRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Food, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)
 	opts.SetLimit(limit)
@@ -84,7 +85,7 @@ func (r *NutritionMealRepository) GetAll(ctx context.Context, page, limit int64)
 	}
 	defer cursor.Close(ctx)
 
-	var nutritionMeals []models.NutritionMeal
+	var nutritionMeals []models.Food
 	if err = cursor.All(ctx, &nutritionMeals); err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func (r *NutritionMealRepository) GetAll(ctx context.Context, page, limit int64)
 	return nutritionMeals, nil
 }
 
-func (r *NutritionMealRepository) Update(ctx context.Context, nutritionMeal *models.NutritionMeal) (*models.NutritionMeal, error) {
+func (r *FoodRepository) Update(ctx context.Context, nutritionMeal *models.Food) (*models.Food, error) {
 	nutritionMeal.UpdatedAt = time.Now()
 
 	filter := bson.M{"_id": nutritionMeal.ID}
@@ -106,9 +107,16 @@ func (r *NutritionMealRepository) Update(ctx context.Context, nutritionMeal *mod
 	return nutritionMeal, nil
 }
 
-func (r *NutritionMealRepository) Delete(ctx context.Context, id string) error {
+func (r *FoodRepository) Delete(ctx context.Context, id string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
+		return err
+	}
+
+	configs := []ForeignKeyCheckConfig{
+		{r.db.Collection("plan_foods"), bson.M{"foodId": objectID}, "kế hoạc dinh dưỡng"},
+	}
+	if err := CheckForeignKeyConstraints(ctx, configs); err != nil {
 		return err
 	}
 

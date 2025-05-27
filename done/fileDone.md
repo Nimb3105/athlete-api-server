@@ -1,2 +1,3 @@
-đã xong ràng buộc :
-+ tournament
+chưa làm model :
++ CoachAthlete 
++ Nutrition

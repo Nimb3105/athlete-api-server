@@ -17,7 +17,7 @@ type MongoDB struct {
 	UserCollection                 *mongo.Collection
 	CoachCollection                *mongo.Collection
 	AthleteCollection              *mongo.Collection
-	SportAthleteCollection         *mongo.Collection
+	SportUserCollection            *mongo.Collection
 	SportCollection                *mongo.Collection
 	ExerciseCollection             *mongo.Collection
 	TrainingScheduleCollection     *mongo.Collection
@@ -37,7 +37,7 @@ type MongoDB struct {
 	MedicalHistoryCollection       *mongo.Collection
 	MessageCollection              *mongo.Collection
 	NutritionPlanCollection        *mongo.Collection
-	NutritionMealCollection        *mongo.Collection
+	FoodCollection                 *mongo.Collection
 	PerformanceCollection          *mongo.Collection
 	ProgressCollection             *mongo.Collection
 	TournamentCollection           *mongo.Collection
@@ -70,7 +70,7 @@ func ConnectMongoDB(config *config.Config) (*MongoDB, error) {
 		UserCollection:                 db.Collection("users"),
 		CoachCollection:                db.Collection("coaches"),
 		AthleteCollection:              db.Collection("athletes"),
-		SportAthleteCollection:         db.Collection("sport_athletes"),
+		SportUserCollection:            db.Collection("sport_users"),
 		SportCollection:                db.Collection("sports"),
 		ExerciseCollection:             db.Collection("exercises"),
 		TrainingScheduleCollection:     db.Collection("training_schedules"),
@@ -90,7 +90,7 @@ func ConnectMongoDB(config *config.Config) (*MongoDB, error) {
 		MedicalHistoryCollection:       db.Collection("medical_histories"),
 		MessageCollection:              db.Collection("messages"),
 		NutritionPlanCollection:        db.Collection("nutrition_plans"),
-		NutritionMealCollection:        db.Collection("nutrition_meals"),
+		FoodCollection:                 db.Collection("foods"),
 		PerformanceCollection:          db.Collection("performances"),
 		ProgressCollection:             db.Collection("progresses"),
 		TournamentCollection:           db.Collection("tournaments"),

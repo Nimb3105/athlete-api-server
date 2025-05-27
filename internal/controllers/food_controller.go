@@ -12,17 +12,17 @@ import (
 )
 
 // NutritionMealController handles HTTP requests for NutritionMeal
-type NutritionMealController struct {
-	nutritionMealService *services.NutritionMealService
+type FoodController struct {
+	foodService *services.FoodService
 }
 
 // NewNutritionMealController creates a new NutritionMealController
-func NewNutritionMealController(nutritionMealService *services.NutritionMealService) *NutritionMealController {
-	return &NutritionMealController{nutritionMealService}
+func NewFoodController(nutritionMealService *services.FoodService) *FoodController {
+	return &FoodController{nutritionMealService}
 }
 
 // CreateNutritionMeal creates a new nutrition meal
-func (c *NutritionMealController) CreateNutritionMeal(ctx *gin.Context) {
+func (c *FoodController) CreateNutritionMeal(ctx *gin.Context) {
 	var bodyBytes []byte
 	if rawData, err := ctx.GetRawData(); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Không thể đọc dữ liệu"})
@@ -38,8 +38,8 @@ func (c *NutritionMealController) CreateNutritionMeal(ctx *gin.Context) {
 	}
 
 	validFields := map[string]bool{
-		"id": true, "nutritionPlanId": true, "mealTime": true, "mealType": true,
-		"description": true, "calories": true, "notes": true,
+		"id": true, "name": true, "foodType": true, "foodImage": true,
+		"description": true, "calories": true,
 		"createdAt": true, "updatedAt": true,
 	}
 	for key := range tempMap {
@@ -49,13 +49,13 @@ func (c *NutritionMealController) CreateNutritionMeal(ctx *gin.Context) {
 		}
 	}
 
-	var nutritionMeal models.NutritionMeal
+	var nutritionMeal models.Food
 	if err := json.Unmarshal(bodyBytes, &nutritionMeal); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Không thể ánh xạ dữ liệu vào model"})
 		return
 	}
 
-	createdNutritionMeal, err := c.nutritionMealService.Create(ctx, &nutritionMeal)
+	createdNutritionMeal, err := c.foodService.Create(ctx, &nutritionMeal)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -65,9 +65,9 @@ func (c *NutritionMealController) CreateNutritionMeal(ctx *gin.Context) {
 }
 
 // GetNutritionMealByID retrieves a nutrition meal by ID
-func (c *NutritionMealController) GetNutritionMealByID(ctx *gin.Context) {
+func (c *FoodController) GetNutritionMealByID(ctx *gin.Context) {
 	id := ctx.Param("id")
-	nutritionMeal, err := c.nutritionMealService.GetByID(ctx, id)
+	nutritionMeal, err := c.foodService.GetByID(ctx, id)
 	if err != nil {
 		if err.Error() == "nutrition meal not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -80,24 +80,12 @@ func (c *NutritionMealController) GetNutritionMealByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": nutritionMeal})
 }
 
-// GetNutritionMealsByNutritionPlanID retrieves nutrition meals by nutrition plan ID
-func (c *NutritionMealController) GetNutritionMealsByNutritionPlanID(ctx *gin.Context) {
-	nutritionPlanID := ctx.Param("nutritionPlanID")
-	nutritionMeals, err := c.nutritionMealService.GetByNutritionPlanID(ctx, nutritionPlanID)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"data": nutritionMeals})
-}
-
 // GetAllNutritionMeals retrieves all nutrition meals with pagination
-func (c *NutritionMealController) GetAllNutritionMeals(ctx *gin.Context) {
+func (c *FoodController) GetAllNutritionMeals(ctx *gin.Context) {
 	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
 	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
 
-	nutritionMeals, err := c.nutritionMealService.GetAll(ctx, page, limit)
+	nutritionMeals, err := c.foodService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -107,15 +95,15 @@ func (c *NutritionMealController) GetAllNutritionMeals(ctx *gin.Context) {
 }
 
 // UpdateNutritionMeal updates a nutrition meal
-func (c *NutritionMealController) UpdateNutritionMeal(ctx *gin.Context) {
+func (c *FoodController) UpdateNutritionMeal(ctx *gin.Context) {
 	ctx.Param("id")
-	var nutritionMeal models.NutritionMeal
+	var nutritionMeal models.Food
 	if err := ctx.ShouldBindJSON(&nutritionMeal); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	updatedNutritionMeal, err := c.nutritionMealService.Update(ctx, &nutritionMeal)
+	updatedNutritionMeal, err := c.foodService.Update(ctx, &nutritionMeal)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -125,9 +113,9 @@ func (c *NutritionMealController) UpdateNutritionMeal(ctx *gin.Context) {
 }
 
 // DeleteNutritionMeal deletes a nutrition meal by ID
-func (c *NutritionMealController) DeleteNutritionMeal(ctx *gin.Context) {
+func (c *FoodController) DeleteNutritionMeal(ctx *gin.Context) {
 	id := ctx.Param("id")
-	if err := c.nutritionMealService.Delete(ctx, id); err != nil {
+	if err := c.foodService.Delete(ctx, id); err != nil {
 		if err.Error() == "nutrition meal not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
