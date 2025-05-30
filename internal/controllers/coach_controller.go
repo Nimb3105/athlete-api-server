@@ -99,13 +99,22 @@ func (c *CoachController) GetAllCoaches(ctx *gin.Context) {
 	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
 	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
 
-	coaches, err := c.coachService.GetAll(ctx, page, limit)
+	coaches, totalCount, err := c.coachService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": coaches})
+	if len(coaches) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Coach{},
+			"note":    "Không có huấn luyện viên nào",
+			"message": "Chưa có dữ liệu nào",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": coaches, "totalCount": totalCount})
 }
 
 // UpdateCoach cập nhật thông tin coach

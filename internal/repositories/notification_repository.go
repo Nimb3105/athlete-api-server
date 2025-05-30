@@ -21,6 +21,24 @@ func NewNotificationRepository(collection *mongo.Collection) *NotificationReposi
 	return &NotificationRepository{collection}
 }
 
+// GetAll lấy tất cả thông báo với phân trang
+func (r *NotificationRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Notification, error) {
+	opts := options.Find()
+	opts.SetSkip((page - 1) * limit)
+	opts.SetLimit(limit)
+	opts.SetSort(bson.D{{Key: "createdAt", Value: -1}})
+	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	var notifications []models.Notification
+	if err = cursor.All(ctx, &notifications); err != nil {
+		return nil, err
+	}
+	return notifications, nil
+}
+
 func (r *NotificationRepository) Create(ctx context.Context, notification *models.Notification) (*models.Notification, error) {
 	notification.CreatedAt = time.Now()
 	notification.UpdatedAt = time.Now()

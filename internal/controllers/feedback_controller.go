@@ -88,6 +88,14 @@ func (c *FeedbackController) GetFeedbackByUserID(ctx *gin.Context) {
 		return
 	}
 
+	if len(feedbacks) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Feedback{},
+			"notes":   "Không có feedback nào cho người dùng này",
+			"message": "khong có dữ liệu nào"})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": feedbacks})
 }
 
@@ -99,6 +107,15 @@ func (c *FeedbackController) GetAllFeedbacks(ctx *gin.Context) {
 	feedbacks, err := c.feedbackService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(feedbacks) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Feedback{},
+			"notes":   "Không có feedback nào",
+			"message": "Chưa có dữ liệu nào",
+		})
 		return
 	}
 

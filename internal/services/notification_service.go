@@ -17,6 +17,11 @@ func NewNotificationService(notificationRepo *repositories.NotificationRepositor
 	return &NotificationService{notificationRepo}
 }
 
+// GetAll lấy tất cả notifications với phân trang
+func (s *NotificationService) GetAll(ctx context.Context, page, limit int64) ([]models.Notification, error) {
+	return s.notificationRepo.GetAll(ctx, page, limit)
+}
+
 // Create tạo một notification mới
 func (s *NotificationService) Create(ctx context.Context, notification *models.Notification) (*models.Notification, error) {
 	if notification.UserID.IsZero() {

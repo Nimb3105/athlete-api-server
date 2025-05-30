@@ -15,5 +15,6 @@ func SetupReminderRoutes(router *gin.Engine, reminderController *controllers.Rem
 		reminders.GET("user/:userID", reminderController.GetRemindersByUserID)
 		reminders.PUT(":id", reminderController.UpdateReminder)
 		reminders.DELETE(":id", reminderController.DeleteReminder)
+		reminders.GET("", reminderController.GetAllReminders)
 	}
 }

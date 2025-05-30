@@ -106,6 +106,16 @@ func (c *MedicalHistoryController) GetAllMedicalHistories(ctx *gin.Context) {
 		return
 	}
 
+	if len(medicalHistories) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.MedicalHistory{},
+			"totalCount": 0,
+			"notes":      "Không có hồ sơ y tế nào",
+			"message":    "Không có dữ liệu",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": medicalHistories})
 }
 

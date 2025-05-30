@@ -25,12 +25,6 @@ func (s *NutritionPlanService) Create(ctx context.Context, nutritionPlan *models
 	if nutritionPlan.CreateBy.IsZero() {
 		return nil, errors.New("coach ID is required")
 	}
-	if nutritionPlan.StartDate.IsZero() {
-		return nil, errors.New("start date is required")
-	}
-	if nutritionPlan.EndDate.Before(nutritionPlan.StartDate) {
-		return nil, errors.New("end date cannot be before start date")
-	}
 	if nutritionPlan.TotalCalories <= 0 {
 		return nil, errors.New("total calories must be greater than zero")
 	}
@@ -43,8 +37,8 @@ func (s *NutritionPlanService) GetByID(ctx context.Context, id string) (*models.
 }
 
 // GetByAthleteID retrieves nutrition plans by athlete ID
-func (s *NutritionPlanService) GetByAthleteID(ctx context.Context, athleteID string) ([]models.NutritionPlan, error) {
-	return s.nutritionPlanRepo.GetByAthleteID(ctx, athleteID)
+func (s *NutritionPlanService) GetByUserID(ctx context.Context, userID string) ([]models.NutritionPlan, error) {
+	return s.nutritionPlanRepo.GetByUserID(ctx, userID)
 }
 
 // GetAll retrieves all nutrition plans with pagination
@@ -62,12 +56,6 @@ func (s *NutritionPlanService) Update(ctx context.Context, nutritionPlan *models
 	}
 	if nutritionPlan.CreateBy.IsZero() {
 		return nil, errors.New("coach ID is required")
-	}
-	if nutritionPlan.StartDate.IsZero() {
-		return nil, errors.New("start date is required")
-	}
-	if nutritionPlan.EndDate.Before(nutritionPlan.StartDate) {
-		return nil, errors.New("end date cannot be before start date")
 	}
 	if nutritionPlan.TotalCalories <= 0 {
 		return nil, errors.New("total calories must be greater than zero")

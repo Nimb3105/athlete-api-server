@@ -16,6 +16,7 @@ const (
 type User struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Gender      string             `bson:"gender" json:"gender"`
+	ImageURL    string             `bson:"imageUrl" json:"imageUrl"`
 	FullName    string             `bson:"fullName" json:"fullName"`
 	Password    string             `bson:"password" json:"password"`
 	Email       string             `bson:"email" json:"email"`

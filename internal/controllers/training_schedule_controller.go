@@ -86,6 +86,16 @@ func (c *TrainingScheduleController) GetAll(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	
+	if len(schedules) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data": []models.TrainingSchedule{},
+			"totalCount": 0,
+			"message": "Không có lịch tập nào",
+			"notes": "không có dữ liệu nào",
+		})
+		return
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": schedules})
 }

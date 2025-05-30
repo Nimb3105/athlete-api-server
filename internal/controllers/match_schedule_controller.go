@@ -107,6 +107,16 @@ func (c *MatchScheduleController) GetAllMatchSchedules(ctx *gin.Context) {
 		return
 	}
 
+	if len(matchSchedules) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.MatchSchedule{},
+			"totalCount": 0,
+			"notes":      "Không có lịch thi đấu nào",
+			"message":    "Chưa có dữ liệu nào",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": matchSchedules})
 }
 

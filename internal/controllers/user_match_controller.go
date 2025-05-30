@@ -11,18 +11,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AthleteMatchController xử lý các yêu cầu HTTP cho AthleteMatch
-type AthleteMatchController struct {
-	athleteMatchService *services.AthleteMatchService
+// UserMatchController xử lý các yêu cầu HTTP cho AthleteMatch
+type UserMatchController struct {
+	userMatchService *services.UserMatchService
 }
 
-// NewAthleteMatchController tạo một AthleteMatchController mới
-func NewAthleteMatchController(athleteMatchService *services.AthleteMatchService) *AthleteMatchController {
-	return &AthleteMatchController{athleteMatchService}
+// NewUserMatchController tạo một UserMatchController mới
+func NewUserMatchController(userMatchService *services.UserMatchService) *UserMatchController {
+	return &UserMatchController{userMatchService: userMatchService}
 }
 
 // CreateAthleteMatch tạo một athlete match mới
-func (c *AthleteMatchController) CreateAthleteMatch(ctx *gin.Context) {
+func (c *UserMatchController) CreateUserMatch(ctx *gin.Context) {
 	var bodyBytes []byte
 	if rawData, err := ctx.GetRawData(); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Không thể đọc dữ liệu"})
@@ -48,27 +48,27 @@ func (c *AthleteMatchController) CreateAthleteMatch(ctx *gin.Context) {
 		}
 	}
 
-	var athleteMatch models.AthleteMatch
-	if err := json.Unmarshal(bodyBytes, &athleteMatch); err != nil {
+	var userMatch models.UserMatch
+	if err := json.Unmarshal(bodyBytes, &userMatch); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Không thể ánh xạ dữ liệu vào model"})
 		return
 	}
 
-	createdAthleteMatch, err := c.athleteMatchService.Create(ctx, &athleteMatch)
+	createdUserMatch, err := c.userMatchService.Create(ctx, &userMatch)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"data": createdAthleteMatch})
+	ctx.JSON(http.StatusCreated, gin.H{"data": createdUserMatch})
 }
 
 // GetAthleteMatchByID lấy athlete match theo ID
-func (c *AthleteMatchController) GetAthleteMatchByID(ctx *gin.Context) {
+func (c *UserMatchController) GetUserMatchByID(ctx *gin.Context) {
 	id := ctx.Param("id")
-	athleteMatch, err := c.athleteMatchService.GetByID(ctx, id)
+	userMatch, err := c.userMatchService.GetByID(ctx, id)
 	if err != nil {
-		if err.Error() == "athlete match not found" {
+		if err.Error() == "user match not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
@@ -76,56 +76,66 @@ func (c *AthleteMatchController) GetAthleteMatchByID(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": athleteMatch})
+	ctx.JSON(http.StatusOK, gin.H{"data": userMatch})
 }
 
 // GetAthleteMatchByUserID lấy danh sách athlete match theo UserID
-func (c *AthleteMatchController) GetAthleteMatchByUserID(ctx *gin.Context) {
+func (c *UserMatchController) GetUserMatchByUserID(ctx *gin.Context) {
 	userID := ctx.Param("userID")
-	athleteMatches, err := c.athleteMatchService.GetByUserID(ctx, userID)
+	userMatches, err := c.userMatchService.GetByUserID(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": athleteMatches})
+	if len(userMatches) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.UserMatch{},
+			"message": "không có dữ liệu nào",
+			"notes":   "bạn có thể tạo user match mới nếu bạn muốn",
+		})
+
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": userMatches})
 }
 
 // GetAllAthleteMatches lấy danh sách tất cả athlete match với phân trang
-func (c *AthleteMatchController) GetAllAthleteMatches(ctx *gin.Context) {
+func (c *UserMatchController) GetAllUserMatches(ctx *gin.Context) {
 	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
 	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
 
-	athleteMatches, err := c.athleteMatchService.GetAll(ctx, page, limit)
+	userMatches, err := c.userMatchService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": athleteMatches})
+	ctx.JSON(http.StatusOK, gin.H{"data": userMatches})
 }
 
 // UpdateAthleteMatch cập nhật thông tin athlete match
-func (c *AthleteMatchController) UpdateAthleteMatch(ctx *gin.Context) {
-	var athleteMatch models.AthleteMatch
-	if err := ctx.ShouldBindJSON(&athleteMatch); err != nil {
+func (c *UserMatchController) UpdateUserMatch(ctx *gin.Context) {
+	var userMatch models.UserMatch
+	if err := ctx.ShouldBindJSON(&userMatch); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	updatedAthleteMatch, err := c.athleteMatchService.Update(ctx, &athleteMatch)
+	updatedUserMatch, err := c.userMatchService.Update(ctx, &userMatch)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": updatedAthleteMatch})
+	ctx.JSON(http.StatusOK, gin.H{"data": updatedUserMatch})
 }
 
 // DeleteAthleteMatch xóa athlete match theo ID
-func (c *AthleteMatchController) DeleteAthleteMatch(ctx *gin.Context) {
+func (c *UserMatchController) DeleteUserMatch(ctx *gin.Context) {
 	id := ctx.Param("id")
-	if err := c.athleteMatchService.Delete(ctx, id); err != nil {
+	if err := c.userMatchService.Delete(ctx, id); err != nil {
 		if err.Error() == "athlete match not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return

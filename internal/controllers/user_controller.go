@@ -40,7 +40,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 	validFields := map[string]bool{
 		"email": true, "password": true, "fullName": true, "gender": true,
 		"phoneNumber": true, "dateOfBirth": true, "role": true, "status": true,
-		"createdAt": true, "updatedAt": true,
+		"createdAt": true, "updatedAt": true, "imageUrl": true,
 	}
 	for key := range tempMap {
 		if !validFields[key] {
@@ -104,6 +104,15 @@ func (c *UserController) GetAllUsers(ctx *gin.Context) {
 	users, err := c.userService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(users) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.User{},
+			"message": "Không có dữ liệu nào",
+			"notes":   "Không có người dùng nào được tìm thấy",
+		})
 		return
 	}
 

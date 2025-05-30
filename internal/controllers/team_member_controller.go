@@ -87,6 +87,15 @@ func (c *TeamMemberController) GetTeamMembersByTeamID(ctx *gin.Context) {
 		return
 	}
 
+	if len(teamMembers) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data": []models.TeamMember{},
+			"message":"không có dữ liệu nào",
+			"note": "Bạn có thể tạo team member mới bằng cách gửi yêu cầu POST tới /team_members",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": teamMembers})
 }
 
@@ -96,6 +105,15 @@ func (c *TeamMemberController) GetTeamMembersByUserID(ctx *gin.Context) {
 	teamMembers, err := c.teamMemberService.GetByUserID(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(teamMembers) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data": []models.TeamMember{},
+			"message": "không có dữ liệu nào",
+			"note": "Bạn có thể tạo team member mới bằng cách gửi yêu cầu POST tới /team_members",
+		})
 		return
 	}
 
@@ -110,6 +128,16 @@ func (c *TeamMemberController) GetAllTeamMembers(ctx *gin.Context) {
 	teamMembers, err := c.teamMemberService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(teamMembers) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.TeamMember{},
+			"totalCount": 0,
+			"notes":      "Không có thành viên đội nào",
+			"message":    "Chưa có dữ liệu nào",
+		})
 		return
 	}
 

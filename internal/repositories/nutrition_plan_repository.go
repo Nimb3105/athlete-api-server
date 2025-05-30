@@ -19,8 +19,8 @@ type NutritionPlanRepository struct {
 	db         *mongo.Database
 }
 
-func NewNutritionPlanRepository(collection *mongo.Collection,db         *mongo.Database) *NutritionPlanRepository {
-	return &NutritionPlanRepository{collection:collection,db:db,}
+func NewNutritionPlanRepository(collection *mongo.Collection, db *mongo.Database) *NutritionPlanRepository {
+	return &NutritionPlanRepository{collection: collection, db: db}
 }
 
 func (r *NutritionPlanRepository) Create(ctx context.Context, nutritionPlan *models.NutritionPlan) (*models.NutritionPlan, error) {
@@ -54,13 +54,13 @@ func (r *NutritionPlanRepository) GetByID(ctx context.Context, id string) (*mode
 	return &nutritionPlan, nil
 }
 
-func (r *NutritionPlanRepository) GetByAthleteID(ctx context.Context, athleteID string) ([]models.NutritionPlan, error) {
-	objectID, err := primitive.ObjectIDFromHex(athleteID)
+func (r *NutritionPlanRepository) GetByUserID(ctx context.Context, userID string) ([]models.NutritionPlan, error) {
+	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	cursor, err := r.collection.Find(ctx, bson.M{"athleteId": objectID})
+	cursor, err := r.collection.Find(ctx, bson.M{"userId": objectID})
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (r *NutritionPlanRepository) Delete(ctx context.Context, id string) error {
 
 	// Kiểm tra ràng buộc khóa ngoại
 	configs := []ForeignKeyCheckConfig{
-		{r.db.Collection("nutrition_meals"), bson.M{"nutritionPlanId": objectID}, "bữa ăn dinh dưỡng"},
+		{r.db.Collection("plan_foods"), bson.M{"nutritionPlanId": objectID}, "bữa ăn dinh dưỡng"},
 		{r.db.Collection("notifications"), bson.M{"nutritionPlanId": objectID}, "thông báo"},
 		{r.db.Collection("reminders"), bson.M{"nutritionPlanId": objectID}, "lời nhắc"},
 	}

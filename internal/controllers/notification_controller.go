@@ -21,6 +21,18 @@ func NewNotificationController(notificationService *services.NotificationService
 	return &NotificationController{notificationService}
 }
 
+// GetAllNotifications lấy tất cả notifications với phân trang
+func (c *NotificationController) GetAllNotifications(ctx *gin.Context) {
+	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
+	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
+	notifications, err := c.notificationService.GetAll(ctx, page, limit)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"data": notifications})
+}
+
 // CreateNotification tạo một notification mới
 func (c *NotificationController) CreateNotification(ctx *gin.Context) {
 	var bodyBytes []byte
@@ -89,6 +101,15 @@ func (c *NotificationController) GetNotificationsByUserID(ctx *gin.Context) {
 	notifications, err := c.notificationService.GetByUserID(ctx, userID, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(notifications) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Notification{},
+			"message": "Không có dữ liệu nào",
+			"notes":   "Không có thông báo nào cho người dùng này",
+		})
 		return
 	}
 

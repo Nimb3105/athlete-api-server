@@ -36,7 +36,10 @@ func (s *AthleteService) GetByUserID(ctx context.Context, userID string) (*model
 }
 
 // GetAll lấy danh sách tất cả athlete với phân trang
-func (s *AthleteService) GetAll(ctx context.Context, page, limit int64) ([]models.Athlete, error) {
+func (s *AthleteService) GetAll(ctx context.Context, page, limit int64) ([]models.Athlete, int64, error) {
+	if page < 1 || limit < 1 {
+		return nil, 0, errors.New("invalid page or limit")
+	}
 	return s.athleteRepo.GetAll(ctx, page, limit)
 }
 

@@ -80,15 +80,28 @@ func (c *ExerciseController) GetAll(ctx *gin.Context) {
 	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
 	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
 
-	exercises, err := c.service.GetAll(ctx, page, limit)
+	exercises, totalCount, err := c.service.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": exercises})
-}
+	if len(exercises) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.Exercise{},
+			"totalCount": 0,
+			"notes":  "không có bài tập nào",
+			"message": "chưa có dữ liệu nào",
+		})
+		return
+	}
 
+	ctx.JSON(http.StatusOK, gin.H{
+		"data":       exercises,
+		"totalCount": totalCount,
+	})
+}
+	
 func (c *ExerciseController) Update(ctx *gin.Context) {
 	ctx.Param("id")
 	var exercise models.Exercise

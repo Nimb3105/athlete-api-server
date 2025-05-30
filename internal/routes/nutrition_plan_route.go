@@ -2,6 +2,7 @@ package routes
 
 import (
 	"be/internal/controllers"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,7 +12,7 @@ func SetupNutritionPlanRoutes(router *gin.Engine, nutritionPlanController *contr
 	{
 		nutritionPlans.POST("", nutritionPlanController.CreateNutritionPlan)
 		nutritionPlans.GET(":id", nutritionPlanController.GetNutritionPlanByID)
-		nutritionPlans.GET("athlete/:athleteID", nutritionPlanController.GetNutritionPlansByAthleteID)
+		nutritionPlans.GET("user/:userID", nutritionPlanController.GetNutritionPlansByUserID)
 		nutritionPlans.GET("", nutritionPlanController.GetAllNutritionPlans)
 		nutritionPlans.PUT(":id", nutritionPlanController.UpdateNutritionPlan)
 		nutritionPlans.DELETE(":id", nutritionPlanController.DeleteNutritionPlan)

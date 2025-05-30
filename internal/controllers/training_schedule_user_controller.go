@@ -88,6 +88,15 @@ func (c *TrainingScheduleUserController) GetByScheduleID(ctx *gin.Context) {
 		return
 	}
 
+	if len(scheduleAthletes) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.TrainingScheduleUser{},
+			"message": "không có dữ liệu nào",
+			"notes":   "bạn có thể tạo mới một lịch tập cho người dùng này",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": scheduleAthletes})
 }
 
@@ -103,6 +112,16 @@ func (c *TrainingScheduleUserController) GetByUserID(ctx *gin.Context) {
 		return
 	}
 
+	if len(scheduleAthletes) == 0 {
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.TrainingScheduleUser{},
+			"message": "không có dữ liệu nào",
+			"notes":   "bạn có thể tạo mới một lịch tập cho người dùng này",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": scheduleAthletes})
 }
 
@@ -113,6 +132,16 @@ func (c *TrainingScheduleUserController) GetAll(ctx *gin.Context) {
 	scheduleAthletes, err := c.service.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(scheduleAthletes) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.TrainingScheduleUser{},
+			"totalCount": 0,
+			"message":    "không có lịch tập nào",
+			"notes":      "không có dữ liệu nào",
+		})
 		return
 	}
 
@@ -152,11 +181,20 @@ func (c *TrainingScheduleUserController) Delete(ctx *gin.Context) {
 
 func (c *TrainingScheduleUserController) GetAllTrainingScheduleUserByUserID(ctx *gin.Context) {
 	userID := ctx.Param("userID")
-	TrainingScheduleUser, err := c.service.GetAllByUserID(ctx, userID)
+	TrainingScheduleUsers, err := c.service.GetAllByUserID(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": TrainingScheduleUser})
+	if len(TrainingScheduleUsers) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.TrainingScheduleUser{},
+			"message": "không có lịch tập nào cho người dùng này",
+			"notes":   "bạn có thể tạo mới một lịch tập cho người dùng này",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": TrainingScheduleUsers})
 }

@@ -89,6 +89,15 @@ func (c *ProgressController) GetProgressesByUserID(ctx *gin.Context) {
 		return
 	}
 
+	if len(progresses) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data": []models.Progress{},
+			"message":"Không có dữ liệu nào",
+			"notes": "Bạn có thể tạo tiến độ mới bằng cách gửi yêu cầu POST tới /progress",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": progresses})
 }
 
@@ -100,6 +109,16 @@ func (c *ProgressController) GetAllProgresses(ctx *gin.Context) {
 	progresses, err := c.progressService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(progresses) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.Progress{},
+			"totalCount": 0,
+			"notes":      "Không có tiến độ nào",
+			"message":    "Chưa có dữ liệu nào",
+		})
 		return
 	}
 

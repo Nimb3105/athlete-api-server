@@ -38,9 +38,9 @@ func (c *NutritionPlanController) CreateNutritionPlan(ctx *gin.Context) {
 	}
 
 	validFields := map[string]bool{
-		"id": true, "userId": true, "CreateBy": true, "startDate": true,
-		"endDate": true, "totalCalories": true, "mealsPerDay": true, "notes": true,
-		"createdAt": true, "updatedAt": true,
+		"id": true, "userId": true, "CreateBy": true, "name": true,
+		"description": true, "totalCalories": true, "mealType": true, "mealTime": true,
+		"createdAt": true, "updatedAt": true, "mealCount": true,
 	}
 	for key := range tempMap {
 		if !validFields[key] {
@@ -81,14 +81,20 @@ func (c *NutritionPlanController) GetNutritionPlanByID(ctx *gin.Context) {
 }
 
 // GetNutritionPlansByAthleteID retrieves nutrition plans by athlete ID
-func (c *NutritionPlanController) GetNutritionPlansByAthleteID(ctx *gin.Context) {
-	athleteID := ctx.Param("athleteID")
-	nutritionPlans, err := c.nutritionPlanService.GetByAthleteID(ctx, athleteID)
+func (c *NutritionPlanController) GetNutritionPlansByUserID(ctx *gin.Context) {
+	userID := ctx.Param("userID")
+	nutritionPlans, err := c.nutritionPlanService.GetByUserID(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
+	if len(nutritionPlans) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.NutritionPlan{},
+			"note":    "Chưa có kế hoạch dinh dưỡng nào cho vận động viên này",
+			"message": "Không có dữ liệu nào"})
+		return
+	}
 	ctx.JSON(http.StatusOK, gin.H{"data": nutritionPlans})
 }
 
@@ -100,6 +106,14 @@ func (c *NutritionPlanController) GetAllNutritionPlans(ctx *gin.Context) {
 	nutritionPlans, err := c.nutritionPlanService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(nutritionPlans) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.NutritionPlan{},
+			"message": "Không có dữ liệu nào",
+			"note":    "Chưa có kế hoạch dinh dưỡng nào được ghi nhận"})
 		return
 	}
 

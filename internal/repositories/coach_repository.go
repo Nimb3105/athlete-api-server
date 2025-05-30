@@ -74,7 +74,7 @@ func (r *CoachRepository) GetByUserID(ctx context.Context, userID string) (*mode
 }
 
 // GetAll lấy danh sách tất cả người dùng với phân trang
-func (r *CoachRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Coach, error) {
+func (r *CoachRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Coach,int64, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)
 	opts.SetLimit(limit)
@@ -82,16 +82,21 @@ func (r *CoachRepository) GetAll(ctx context.Context, page, limit int64) ([]mode
 
 	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
-		return nil, err
+		return nil,0, err
 	}
 	defer cursor.Close(ctx)
 
 	var Coachs []models.Coach
 	if err = cursor.All(ctx, &Coachs); err != nil {
-		return nil, err
+		return nil,0, err
 	}
 
-	return Coachs, nil
+	totalCount, err := r.collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return Coachs,totalCount, nil
 }
 
 // Update cập nhật thông tin người dùng
@@ -118,9 +123,10 @@ func (r *CoachRepository) Delete(ctx context.Context, id string) error {
 
 	// Kiểm tra ràng buộc khóa ngoại
 	configs := []ForeignKeyCheckConfig{
-		{r.db.Collection("nutrition_plans"), bson.M{"coachId": objectID}, "kế hoạch dinh dưỡng"},
+		{r.db.Collection("nutrition_plans"), bson.M{"createBy": objectID}, "kế hoạch dinh dưỡng"},
 		{r.db.Collection("training_schedules"), bson.M{"createdBy": objectID}, "lịch tập luyện"},
 		{r.db.Collection("coach_certifications"), bson.M{"userId": objectID}, "chứng chỉ huấn luyện viên"},
+		{r.db.Collection("coach_athletes"), bson.M{"coachId": objectID}, "môi quan hệ huấn luyện viên - vận động viên"},
 	}
 	if err := CheckForeignKeyConstraints(ctx, configs); err != nil {
 		return err

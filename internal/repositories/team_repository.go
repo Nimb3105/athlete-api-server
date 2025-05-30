@@ -26,7 +26,6 @@ func NewTeamRepository(collection *mongo.Collection,db         *mongo.Database) 
 func (r *TeamRepository) Create(ctx context.Context, team *models.Team) (*models.Team, error) {
 	team.CreatedAt = time.Now()
 	team.UpdatedAt = time.Now()
-	team.CreatedDate = time.Now()
 
 	result, err := r.collection.InsertOne(ctx, team)
 	if err != nil {

@@ -88,6 +88,14 @@ func (c *GroupController) GetGroupByCreatedBy(ctx *gin.Context) {
 		return
 	}
 
+	if len(groups) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Group{},
+			"notes":   "Không có group nào được tìm thấy cho CreatedBy: " + createdBy,
+			"message": "Không có dữ liệu nào"})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": groups})
 }
 
@@ -99,6 +107,15 @@ func (c *GroupController) GetAllGroups(ctx *gin.Context) {
 	groups, err := c.groupService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(groups) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Group{},
+			"message": "Không có dữ liệu nào",
+			"note":    "Chưa có group nào được tạo",
+		})
 		return
 	}
 

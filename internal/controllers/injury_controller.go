@@ -107,6 +107,16 @@ func (c *InjuryController) GetAllInjuries(ctx *gin.Context) {
 		return
 	}
 
+	if len(injuries) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.Injury{},
+			"totalCount": 0,
+			"notes":      "Không có chấn thương nào",
+			"message":    "Chưa có dữ liệu nào",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": injuries})
 }
 

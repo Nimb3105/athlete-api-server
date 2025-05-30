@@ -91,6 +91,16 @@ func (c *FoodController) GetAllNutritionMeals(ctx *gin.Context) {
 		return
 	}
 
+	if len(nutritionMeals) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.Food{},
+			"totalCount": 0,
+			"notes":      "khồn có bữa ăn dinh dưỡng nào",
+			"message":    "Không có dữ liệu nào",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": nutritionMeals})
 }
 

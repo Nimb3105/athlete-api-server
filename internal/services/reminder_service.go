@@ -17,6 +17,11 @@ func NewReminderService(reminderRepo *repositories.ReminderRepository) *Reminder
 	return &ReminderService{reminderRepo}
 }
 
+func (s *ReminderService) GetAll(ctx context.Context, page, limit int64) ([]models.Reminder, error) {
+	// Lấy danh sách tất cả reminders với phân trang
+	return s.reminderRepo.GetAll(ctx, page, limit)
+}
+
 // Create tạo một reminder mới
 func (s *ReminderService) Create(ctx context.Context, reminder *models.Reminder) (*models.Reminder, error) {
 	if reminder.UserID.IsZero() {

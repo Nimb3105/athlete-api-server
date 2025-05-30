@@ -20,6 +20,26 @@ type ReminderRepository struct {
 func NewReminderRepository(collection *mongo.Collection) *ReminderRepository {
 	return &ReminderRepository{collection}
 }
+// GetAll lấy tất cả lời nhắc với phân trang
+func (r *ReminderRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Reminder, error) {
+	opts := options.Find()
+	opts.SetSkip((page - 1) * limit)
+	opts.SetLimit(limit)
+	opts.SetSort(bson.D{{Key: "createdAt", Value: -1}})
+
+	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	
+	var reminders []models.Reminder
+	if err = cursor.All(ctx, &reminders); err != nil {
+		return nil, err
+	}
+	return reminders, nil
+}
+
 
 func (r *ReminderRepository) Create(ctx context.Context, reminder *models.Reminder) (*models.Reminder, error) {
 	reminder.CreatedAt = time.Now()

@@ -89,6 +89,15 @@ func (c *SportController) GetAllSports(ctx *gin.Context) {
 		return
 	}
 
+	if len(sports) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data": []models.Sport{},
+			"message": "Không có dữ liệu nào",
+			"notes": "Bạn có thể thêm sport mới bằng cách sử dụng API tạo sport",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": sports})
 }
 

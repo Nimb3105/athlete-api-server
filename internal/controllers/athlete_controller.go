@@ -100,13 +100,22 @@ func (c *AthleteController) GetAllAthletes(ctx *gin.Context) {
 	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
 	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
 
-	athletes, err := c.athleteService.GetAll(ctx, page, limit)
+	athletes, totalCount, err := c.athleteService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": athletes})
+	if len(athletes) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Athlete{},
+			"message": "Không có dữ liệu nào",
+			"note":    "Chưa có vận động viên nào được ghi nhận",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": athletes, "totalCount": totalCount})
 }
 
 // UpdateAthlete cập nhật thông tin athlete

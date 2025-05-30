@@ -12,7 +12,6 @@ type Team struct {
 	SportID     primitive.ObjectID `bson:"sportId" json:"sportId"`
 	Description string             `bson:"description" json:"description"`
 	CreatedBy   primitive.ObjectID `bson:"createdBy" json:"createdBy"` // UserID
-	CreatedDate time.Time          `bson:"createdDate" json:"createdDate"`
 	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
 }

@@ -53,7 +53,7 @@ func (r *ExerciseRepository) GetByID(ctx context.Context, id string) (*models.Ex
 	return &exercise, nil
 }
 
-func (r *ExerciseRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Exercise, error) {
+func (r *ExerciseRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Exercise,int64, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)
 	opts.SetLimit(limit)
@@ -61,16 +61,21 @@ func (r *ExerciseRepository) GetAll(ctx context.Context, page, limit int64) ([]m
 
 	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
-		return nil, err
+		return nil,0, err
 	}
 	defer cursor.Close(ctx)
 
 	var exercises []models.Exercise
 	if err = cursor.All(ctx, &exercises); err != nil {
-		return nil, err
+		return nil,0, err
 	}
 
-	return exercises, nil
+	totalCount, err := r.collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return exercises, totalCount, nil
 }
 
 func (r *ExerciseRepository) Update(ctx context.Context, exercise *models.Exercise) (*models.Exercise, error) {

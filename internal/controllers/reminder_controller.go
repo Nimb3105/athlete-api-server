@@ -21,6 +21,20 @@ func NewReminderController(reminderService *services.ReminderService) *ReminderC
 	return &ReminderController{reminderService}
 }
 
+func (c *ReminderController) GetAllReminders(ctx *gin.Context) {
+	// Lấy danh sách tất cả reminders với phân trang
+	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
+	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
+
+	reminders, err := c.reminderService.GetAll(ctx, page, limit)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": reminders})
+}
+
 // CreateReminder tạo một reminder mới
 func (c *ReminderController) CreateReminder(ctx *gin.Context) {
 	var bodyBytes []byte
@@ -89,6 +103,15 @@ func (c *ReminderController) GetRemindersByUserID(ctx *gin.Context) {
 	reminders, err := c.reminderService.GetByUserID(ctx, userID, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(reminders) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":  []models.Reminder{},
+			"notes": "Không có reminder nào cho người dùng này",
+			"message": "Không có dữ liệu nào",
+		})
 		return
 	}
 

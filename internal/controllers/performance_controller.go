@@ -64,7 +64,6 @@ func (c *PerformanceController) CreatePerformance(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"data": createdPerformance})
 }
 
-
 // GetPerformanceByID retrieves a performance record by ID
 func (c *PerformanceController) GetPerformanceByID(ctx *gin.Context) {
 	id := ctx.Param("id")
@@ -90,6 +89,14 @@ func (c *PerformanceController) GetPerformancesByUserID(ctx *gin.Context) {
 		return
 	}
 
+	if len(performances) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Performance{},
+			"message": "không có dữ liệu nào",
+			"notes":   "Không có hiệu suất nào cho người dùng này"})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": performances})
 }
 
@@ -101,6 +108,16 @@ func (c *PerformanceController) GetAllPerformances(ctx *gin.Context) {
 	performances, err := c.performanceService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(performances) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.Performance{},
+			"totalCount": 0,
+			"notes":      "Không có hiệu suất nào",
+			"message":    "Chưa có dữ liệu nào",
+		})
 		return
 	}
 

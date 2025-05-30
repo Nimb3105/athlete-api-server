@@ -10,7 +10,6 @@ type MatchSchedule struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	TournamentID primitive.ObjectID `bson:"tournamentId" json:"tournamentId"`
 	Date         time.Time          `bson:"date" json:"date"`
-	Time         time.Time          `bson:"time" json:"time"`
 	Location     string             `bson:"location" json:"location"`
 	Opponent     string             `bson:"opponent" json:"opponent"`
 	MatchType    string             `bson:"matchType" json:"matchType"`

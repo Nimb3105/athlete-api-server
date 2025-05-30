@@ -40,7 +40,7 @@ func main() {
 	notificationRepo := repositories.NewNotificationRepository(mongoDB.NotificationCollection)
 	reminderRepo := repositories.NewReminderRepository(mongoDB.ReminderCollection)
 	achivementRepo := repositories.NewAchievementRepository(mongoDB.AchivementCollection)
-	athleteMatchRepo := repositories.NewAthleteMatchRepository(mongoDB.AthleteMatchCollection)
+	userMatchRepo := repositories.NewUserMatchRepository(mongoDB.UserMatchCollection)
 	coachCertificationRepo := repositories.NewCoachCertificationRepository(mongoDB.CoachCertificationCollection)
 	feedbackRepo := repositories.NewFeedbackRepository(mongoDB.FeedbackCollection)
 	groupRepo := repositories.NewGroupRepository(mongoDB.GroupCollection,mongoDB.Database)
@@ -57,6 +57,8 @@ func main() {
 	teamRepo := repositories.NewTeamRepository(mongoDB.TeamCollection,mongoDB.Database)
 	temaMemberRepo := repositories.NewTeamMemberRepository(mongoDB.TeamMemberCollection)
 	tournamentRepo := repositories.NewTournamentRepository(mongoDB.TournamentCollection,mongoDB.Database)
+	planFoodRepo := repositories.NewPlanFoodRepository(mongoDB.PlanFoodCollection)
+	coachAthleteRepo := repositories.NewCoachAthleteRepository(mongoDB.CoachAthleteCollection)
 
 	// Khởi tạo service
 	userService := services.NewUserService(userRepo)
@@ -71,7 +73,7 @@ func main() {
 	reminderService := services.NewReminderService(reminderRepo)
 	TrainingScheduleUserService := services.NewTrainingScheduleUserService(TrainingScheduleUserRepo, notificationService, reminderService, trainingScheduleRepo)
 	achivementService := services.NewAchievementService(achivementRepo)
-	athleteMatchService := services.NewAthleteMatchService(athleteMatchRepo)
+	userMatchService := services.NewUserMatchService(userMatchRepo)
 	coachCertificationService := services.NewCoachCertificationService(coachCertificationRepo)
 	feedbackService := services.NewFeedbackService(feedbackRepo)
 	groupService := services.NewGroupService(groupRepo)
@@ -88,6 +90,8 @@ func main() {
 	teamService := services.NewTeamService(teamRepo)
 	temaMemberService := services.NewTeamMemberService(temaMemberRepo)
 	tournamentService := services.NewTournamentService(tournamentRepo)
+	planFoodService := services.NewPlanFoodService(planFoodRepo)
+	coachAthleteService := services.NewCoachAthleteService(coachAthleteRepo)
 
 	// Khởi tạo controller
 	userController := controllers.NewUserController(userService)
@@ -103,7 +107,7 @@ func main() {
 	notificationController := controllers.NewNotificationController(notificationService)
 	reminderController := controllers.NewReminderController(reminderService)
 	achivementController := controllers.NewAchievementController(achivementService)
-	athleteMatchController := controllers.NewAthleteMatchController(athleteMatchService)
+	userMatchController := controllers.NewUserMatchController(userMatchService)
 	coachCertificationController := controllers.NewCoachCertificationController(coachCertificationService)
 	feedbackController := controllers.NewFeedbackController(feedbackService)
 	groupController := controllers.NewGroupController(groupService)
@@ -120,6 +124,8 @@ func main() {
 	teamController := controllers.NewTeamController(teamService)
 	temaMemberController := controllers.NewTeamMemberController(temaMemberService)
 	tournamentController := controllers.NewTournamentController(tournamentService)
+	planFoodController := controllers.NewPlanFoodController(planFoodService)
+	coachAthleteController := controllers.NewCoachAthleteController(coachAthleteService)
 
 	// Khởi tạo router Gin
 	r := gin.Default()
@@ -147,7 +153,7 @@ func main() {
 	routes.SetupNotificationRoutes(r, notificationController)
 	routes.SetupReminderRoutes(r, reminderController)
 	routes.SetupAchievementRoutes(r, achivementController)
-	routes.SetupAthleteMatchRoutes(r, athleteMatchController)
+	routes.SetupUserMatchRoutes(r, userMatchController)
 	routes.SetupCoachCertificationRoutes(r,coachCertificationController)
 	routes.SetupFeedbackRoutes(r,feedbackController)
 	routes.SetupGroupRoutes(r,groupController)
@@ -164,6 +170,8 @@ func main() {
 	routes.SetupTeamMemberRoutes(r,temaMemberController)
 	routes.SetupTeamRoutes(r,teamController)
 	routes.SetupTournamentRoutes(r,tournamentController)
+	routes.SetupPlanFoodRoutes(r, planFoodController)
+	routes.SetupCoachAthleteRoutes(r, coachAthleteController)
 
 
 	// Chạy server

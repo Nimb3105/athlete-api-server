@@ -88,6 +88,15 @@ func (c *TeamController) GetTeamsBySportID(ctx *gin.Context) {
 		return
 	}
 
+	if len(teams) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Team{},
+			"message": "ko có đội nào cho môn thể thao này",
+			"note":    "Chưa có đội nào được ghi nhận cho môn thể thao này",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": teams})
 }
 
@@ -99,6 +108,16 @@ func (c *TeamController) GetAllTeams(ctx *gin.Context) {
 	teams, err := c.teamService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(teams) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.Team{},
+			"totalCount": 0,
+			"notes":      "Không có đội nào",
+			"message":    "Chưa có dữ liệu nào",
+		})
 		return
 	}
 

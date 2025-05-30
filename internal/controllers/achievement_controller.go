@@ -88,6 +88,15 @@ func (c *AchievementController) GetAchievementByUserID(ctx *gin.Context) {
 		return
 	}
 
+	if len(achievements) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Achievement{},
+			"message": "Không có dữ liệu nào",
+			"note":    "Chưa có thành tích nào được ghi nhận cho người dùng này",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": achievements})
 }
 
@@ -99,6 +108,15 @@ func (c *AchievementController) GetAllAchievements(ctx *gin.Context) {
 	achievements, err := c.achievementService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(achievements) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Achievement{},
+			"message": "Không có dữ liệu nào",
+			"note":    "Chưa có thành tích nào được ghi nhận",
+		})
 		return
 	}
 

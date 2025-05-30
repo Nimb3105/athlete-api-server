@@ -26,7 +26,7 @@ type MongoDB struct {
 	NotificationCollection         *mongo.Collection
 	ReminderCollection             *mongo.Collection
 	AchivementCollection           *mongo.Collection
-	AthleteMatchCollection         *mongo.Collection
+	UserMatchCollection            *mongo.Collection
 	CoachCertificationCollection   *mongo.Collection
 	FeedbackCollection             *mongo.Collection
 	GroupCollection                *mongo.Collection
@@ -43,6 +43,8 @@ type MongoDB struct {
 	TournamentCollection           *mongo.Collection
 	TeamMemberCollection           *mongo.Collection
 	TeamCollection                 *mongo.Collection
+	PlanFoodCollection             *mongo.Collection
+	CoachAthleteCollection         *mongo.Collection
 }
 
 // ConnectMongoDB khởi tạo kết nối tới MongoDB
@@ -79,7 +81,7 @@ func ConnectMongoDB(config *config.Config) (*MongoDB, error) {
 		NotificationCollection:         db.Collection("notifications"),
 		ReminderCollection:             db.Collection("reminders"),
 		AchivementCollection:           db.Collection("achivements"),
-		AthleteMatchCollection:         db.Collection("athlete_matches"),
+		UserMatchCollection:            db.Collection("user_matches"),
 		CoachCertificationCollection:   db.Collection("coach_certifications"),
 		FeedbackCollection:             db.Collection("feedbacks"),
 		GroupCollection:                db.Collection("groups"),
@@ -96,6 +98,8 @@ func ConnectMongoDB(config *config.Config) (*MongoDB, error) {
 		TournamentCollection:           db.Collection("tournaments"),
 		TeamMemberCollection:           db.Collection("team_members"),
 		TeamCollection:                 db.Collection("teams"),
+		PlanFoodCollection:             db.Collection("plan_foods"),
+		CoachAthleteCollection:         db.Collection("coach_athletes"),
 	}, nil
 }
 

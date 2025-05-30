@@ -88,6 +88,15 @@ func (c *TrainingExerciseController) GetByScheduleID(ctx *gin.Context) {
 		return
 	}
 
+	if len(trainingExercises) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.TrainingExercise{},
+			"message": "không có dữ liệu nào",
+			"notes":   "Không có bài tập nào được tìm thấy cho lịch tập này",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": trainingExercises})
 }
 
@@ -98,6 +107,12 @@ func (c *TrainingExerciseController) GetAll(ctx *gin.Context) {
 	trainingExercises, err := c.service.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(trainingExercises) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{"data": []models.TrainingExercise{}, "message": "không có dữ liệu nào", " notes": "Bạn có thể tạo bài tập mới bằng cách sử dụng API tạo bài tập"})
+
 		return
 	}
 

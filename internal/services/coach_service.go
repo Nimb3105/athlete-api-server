@@ -35,7 +35,10 @@ func (s *CoachService) GetByUserID(ctx context.Context, userID string) (*models.
 }
 
 // GetAll lấy danh sách tất cả coach với phân trang
-func (s *CoachService) GetAll(ctx context.Context, page, limit int64) ([]models.Coach, error) {
+func (s *CoachService) GetAll(ctx context.Context, page, limit int64) ([]models.Coach, int64, error) {
+	if page < 1 || limit < 1 {
+		return nil, 0, errors.New("invalid page or limit")
+	}
 	return s.coachRepo.GetAll(ctx, page, limit)
 }
 

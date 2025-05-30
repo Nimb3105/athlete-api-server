@@ -15,5 +15,6 @@ func SetupNotificationRoutes(router *gin.Engine, notificationController *control
 		notifications.GET("user/:userID", notificationController.GetNotificationsByUserID)
 		notifications.PUT(":id", notificationController.UpdateNotification)
 		notifications.DELETE(":id", notificationController.DeleteNotification)
+		notifications.GET("", notificationController.GetAllNotifications)
 	}
 }

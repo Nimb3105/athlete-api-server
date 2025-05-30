@@ -45,9 +45,9 @@ func (s *ExerciseService) GetByID(ctx context.Context, id string) (*models.Exerc
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *ExerciseService) GetAll(ctx context.Context, page, limit int64) ([]models.Exercise, error) {
+func (s *ExerciseService) GetAll(ctx context.Context, page, limit int64) ([]models.Exercise,int64, error) {
 	if page < 1 || limit < 1 {
-		return nil, errors.New("invalid page or limit")
+		return nil,0, errors.New("invalid page or limit")
 	}
 	return s.repo.GetAll(ctx, page, limit)
 }

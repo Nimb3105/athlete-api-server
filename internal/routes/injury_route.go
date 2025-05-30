@@ -7,7 +7,7 @@ import (
 
 // SetupInjuryRoutes attaches routes for Injury to the router group
 func SetupInjuryRoutes(router *gin.Engine, injuryController *controllers.InjuryController) {
-	injuries := router.Group("/injuries")
+	injuries := router.Group("/injurys")
 	{
 		injuries.POST("", injuryController.CreateInjury)
 		injuries.GET(":id", injuryController.GetInjuryByID)

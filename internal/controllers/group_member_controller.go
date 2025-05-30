@@ -106,6 +106,16 @@ func (c *GroupMemberController) GetAllGroupMembers(ctx *gin.Context) {
 		return
 	}
 
+	if len(groupMembers) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.GroupMember{},
+			"totalCount": 0,
+			"notes":      "Không có thành viên nhóm nào",
+			"message":    "Không có dữ liệu nào",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": groupMembers})
 }
 

@@ -77,7 +77,7 @@ func (r *AthleteRepository) GetByUserID(ctx context.Context, userID string) (*mo
 }
 
 // GetAll lấy danh sách tất cả athlete với phân trang
-func (r *AthleteRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Athlete, error) {
+func (r *AthleteRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Athlete,int64, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)
 	opts.SetLimit(limit)
@@ -85,16 +85,21 @@ func (r *AthleteRepository) GetAll(ctx context.Context, page, limit int64) ([]mo
 
 	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
-		return nil, err
+		return nil,0, err
 	}
 	defer cursor.Close(ctx)
 
 	var athletes []models.Athlete
 	if err = cursor.All(ctx, &athletes); err != nil {
-		return nil, err
+		return nil,0, err
 	}
 
-	return athletes, nil
+	totalCount, err := r.collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return athletes,totalCount ,nil
 }
 
 // Update cập nhật thông tin athlete
@@ -121,13 +126,14 @@ func (r *AthleteRepository) Delete(ctx context.Context, id string) error {
 
 	// Kiểm tra ràng buộc khóa ngoại
 	configs := []ForeignKeyCheckConfig{
-		{r.db.Collection("nutrition_plans"), bson.M{"athleteId": objectID}, "kế hoạch dinh dưỡng"},
+		{r.db.Collection("nutrition_plans"), bson.M{"userId": objectID}, "kế hoạch dinh dưỡng"},
 		{r.db.Collection("healths"), bson.M{"userId": objectID}, "sức khỏe"},
 		{r.db.Collection("injuries"), bson.M{"userId": objectID}, "chấn thương"},
 		{r.db.Collection("performances"), bson.M{"userId": objectID}, "hiệu suất"},
 		{r.db.Collection("athlete_matches"), bson.M{"userId": objectID}, "trận đấu của vận động viên"},
 		{r.db.Collection("sport_athletes"), bson.M{"userId": objectID}, "vận động viên môn thể thao"},
 		{r.db.Collection("training_schedule_users"), bson.M{"userId": objectID}, "người dùng lịch tập luyện"},
+		{r.db.Collection("coach_athletes"), bson.M{"athleteId": objectID}, "mối quan hệ huấn luyện viên - vận động viên"},
 	}
 	if err := CheckForeignKeyConstraints(ctx, configs); err != nil {
 		return err

@@ -24,7 +24,6 @@ func NewMessageRepository(collection *mongo.Collection) *MessageRepository {
 func (r *MessageRepository) Create(ctx context.Context, message *models.Message) (*models.Message, error) {
 	message.CreatedAt = time.Now()
 	message.UpdatedAt = time.Now()
-	message.SentDate = time.Now()
 
 	result, err := r.collection.InsertOne(ctx, message)
 	if err != nil {

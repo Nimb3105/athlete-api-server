@@ -8,7 +8,7 @@ import (
 
 // SetupCoachRoutes gắn các route cho Coach vào router group
 func SetupCoachRoutes(router *gin.Engine, coachController *controllers.CoachController) {
-	coaches := router.Group("/coaches")
+	coaches := router.Group("/coachs")
 	{
 		coaches.POST("", coachController.CreateCoach)
 		coaches.GET(":id", coachController.GetCoachByID)

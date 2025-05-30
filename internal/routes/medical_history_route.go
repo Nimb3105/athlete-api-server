@@ -7,7 +7,7 @@ import (
 
 // SetupMedicalHistoryRoutes attaches routes for MedicalHistory to the router group
 func SetupMedicalHistoryRoutes(router *gin.Engine, medicalHistoryController *controllers.MedicalHistoryController) {
-	medicalHistories := router.Group("/medical-histories")
+	medicalHistories := router.Group("/medical-historys")
 	{
 		medicalHistories.POST("", medicalHistoryController.CreateMedicalHistory)
 		medicalHistories.GET(":id", medicalHistoryController.GetMedicalHistoryByID)

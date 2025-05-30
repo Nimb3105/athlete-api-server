@@ -26,7 +26,6 @@ func NewGroupRepository(collection *mongo.Collection,db         *mongo.Database)
 func (r *GroupRepository) Create(ctx context.Context, group *models.Group) (*models.Group, error) {
 	group.CreatedAt = time.Now()
 	group.UpdatedAt = time.Now()
-	group.CreatedDate = time.Now()
 
 	result, err := r.collection.InsertOne(ctx, group)
 	if err != nil {

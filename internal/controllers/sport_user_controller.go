@@ -121,6 +121,15 @@ func (c *SportUserController) GetAllSportUsers(ctx *gin.Context) {
 		return
 	}
 
+	if len(SportUsers) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.SportUser{},
+			"message": "Không có dữ liệu nào",
+			"note":    "Chưa có vận động viên thể thao nào được ghi nhận",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": SportUsers})
 }
 
@@ -162,6 +171,15 @@ func (c *SportUserController) GetAllByUserID(ctx *gin.Context) {
 	SportUsers, err := c.SportUserService.GetAllByUserID(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(SportUsers) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.SportUser{},
+			"note":    "Người dùng chưa có môn thể thao nào",
+			"message": "Không có dữ liệu nào",
+		})
 		return
 	}
 

@@ -91,6 +91,16 @@ func (c *TournamentController) GetAllTournaments(ctx *gin.Context) {
 		return
 	}
 
+	if len(tournaments) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.Tournament{},
+			"totalCount": 0,
+			"message": "không có dữ liệu nào",
+			"notes": "bạn có thể tạo một giải đấu mới bằng cách sử dụng API tạo giải đấu",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": tournaments})
 }
 

@@ -87,6 +87,15 @@ func (c *CoachCertificationController) GetCoachCertificationByUserID(ctx *gin.Co
 		return
 	}
 
+	if len(certifications) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.CoachCertification{},
+			"note":    "Không có chứng chỉ huấn luyện viên nào",
+			"message": "Chưa có dữ liệu nào",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": certifications})
 }
 
@@ -98,6 +107,15 @@ func (c *CoachCertificationController) GetAllCoachCertifications(ctx *gin.Contex
 	certifications, err := c.certificationService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(certifications) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.CoachCertification{},
+			"message": "Không có dữ liệu nào",
+			"note":    "Chưa có chứng chỉ huấn luyện viên nào được ghi nhận",
+		})
 		return
 	}
 

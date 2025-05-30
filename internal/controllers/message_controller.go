@@ -63,7 +63,6 @@ func (c *MessageController) CreateMessage(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"data": createdMessage})
 }
 
-
 // GetMessageByID retrieves a message by ID
 func (c *MessageController) GetMessageByID(ctx *gin.Context) {
 	id := ctx.Param("id")
@@ -89,6 +88,15 @@ func (c *MessageController) GetMessagesByGroupID(ctx *gin.Context) {
 		return
 	}
 
+	if len(messages) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Message{},
+			"message": "không có dữ liệu nào",
+			"notes":   "Không có tin nhắn nào được tìm thấy cho GroupID: " + groupID,
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": messages})
 }
 
@@ -100,6 +108,16 @@ func (c *MessageController) GetAllMessages(ctx *gin.Context) {
 	messages, err := c.messageService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(messages) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.Message{},
+			"totalCount": 0,
+			"notes":      "Không có tin nhắn nào",
+			"message":    "Chưa có dữ liệu nào",
+		})
 		return
 	}
 
