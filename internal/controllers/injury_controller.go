@@ -39,7 +39,7 @@ func (c *InjuryController) CreateInjury(ctx *gin.Context) {
 
 	validFields := map[string]bool{
 		"id": true, "userId": true, "type": true, "date": true, "severity": true,
-		"locationOnBody": true, "causeOfInjury": true, "recoveryStatus": true,
+		"locationOnBody": true, "causeOfInjury": true, "status": true,
 		"createdAt": true, "updatedAt": true,
 	}
 	for key := range tempMap {
@@ -85,14 +85,18 @@ func (c *InjuryController) GetInjuryByUserID(ctx *gin.Context) {
 	userID := ctx.Param("userID")
 	injury, err := c.injuryService.GetByUserID(ctx, userID)
 	if err != nil {
-		if err.Error() == "injury not found" {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
-		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	if len(injury) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Injury{},
+			"message": "không có dữ liệu nào",
+			"note":    "chưa có chấn thương nào được ghi nhận",
+		})
+		return
+	}
 	ctx.JSON(http.StatusOK, gin.H{"data": injury})
 }
 

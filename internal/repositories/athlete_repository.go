@@ -118,36 +118,32 @@ func (r *AthleteRepository) Update(ctx context.Context, athlete *models.Athlete)
 }
 
 // Delete xóa athlete theo ID
-func (r *AthleteRepository) Delete(ctx context.Context, id string) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
+func (r *AthleteRepository) Delete(ctx context.Context, userID string) error {
+	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return fmt.Errorf("ID vận động viên không hợp lệ: %w", err)
 	}
-
-	// Kiểm tra ràng buộc khóa ngoại
-	configs := []ForeignKeyCheckConfig{
-		{r.db.Collection("nutrition_plans"), bson.M{"userId": objectID}, "kế hoạch dinh dưỡng"},
-		{r.db.Collection("healths"), bson.M{"userId": objectID}, "sức khỏe"},
-		{r.db.Collection("injuries"), bson.M{"userId": objectID}, "chấn thương"},
-		{r.db.Collection("performances"), bson.M{"userId": objectID}, "hiệu suất"},
-		{r.db.Collection("athlete_matches"), bson.M{"userId": objectID}, "trận đấu của vận động viên"},
-		{r.db.Collection("sport_athletes"), bson.M{"userId": objectID}, "vận động viên môn thể thao"},
-		{r.db.Collection("training_schedule_users"), bson.M{"userId": objectID}, "người dùng lịch tập luyện"},
-		{r.db.Collection("coach_athletes"), bson.M{"athleteId": objectID}, "mối quan hệ huấn luyện viên - vận động viên"},
-	}
-	if err := CheckForeignKeyConstraints(ctx, configs); err != nil {
-		return err
-	}
-
 	// Xóa athlete
-	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
+	result, err := r.collection.DeleteOne(ctx, bson.M{"userId": objectID})
 	if err != nil {
 		return fmt.Errorf("lỗi khi xóa vận động viên: %w", err)
 	}
 
 	if result.DeletedCount == 0 {
-		return errors.New("vận động viên không tồn tại")
+		return nil
 	}
 
 	return nil
+}
+
+
+func (r *AthleteRepository) Exists(ctx context.Context, userID string) (bool, error) {
+    // Kiểm tra xem userId có tồn tại không
+    count, err := r.collection.CountDocuments(ctx, bson.M{"userId": userID})
+    if err != nil {
+        return false, fmt.Errorf("lỗi khi kiểm tra vận động viên: %w", err)
+    }
+
+    // Nếu số lượng lớn hơn 0, tức là tồn tại
+    return count > 0, nil
 }

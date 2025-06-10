@@ -38,7 +38,7 @@ func (c *HealthController) CreateHealth(ctx *gin.Context) {
 	}
 
 	validFields := map[string]bool{
-		"id": true, "userId": true, "height": true, "weight": true,
+		"id": true, "userId": true, "height": true, "weight": true, "date": true,
 		"bmi": true, "bloodType": true, "createdAt": true, "updatedAt": true,
 	}
 	for key := range tempMap {
@@ -84,11 +84,16 @@ func (c *HealthController) GetHealthByUserID(ctx *gin.Context) {
 	userID := ctx.Param("userID")
 	health, err := c.healthService.GetByUserID(ctx, userID)
 	if err != nil {
-		if err.Error() == "health record not found" {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
-		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(health) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Health{},
+			"message": "không có dữ liệu nào",
+			"note":    "chưa có thông tin sức khỏe nào được ghi nhận",
+		})
 		return
 	}
 
@@ -115,7 +120,6 @@ func (c *HealthController) GetAllHealthRecords(ctx *gin.Context) {
 		})
 		return
 	}
-	
 
 	ctx.JSON(http.StatusOK, gin.H{"data": healthRecords})
 }
@@ -151,4 +155,4 @@ func (c *HealthController) DeleteHealth(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": "health record deleted"})
-}	
+}

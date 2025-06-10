@@ -74,7 +74,7 @@ func (r *CoachRepository) GetByUserID(ctx context.Context, userID string) (*mode
 }
 
 // GetAll lấy danh sách tất cả người dùng với phân trang
-func (r *CoachRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Coach,int64, error) {
+func (r *CoachRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Coach, int64, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)
 	opts.SetLimit(limit)
@@ -82,13 +82,13 @@ func (r *CoachRepository) GetAll(ctx context.Context, page, limit int64) ([]mode
 
 	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
-		return nil,0, err
+		return nil, 0, err
 	}
 	defer cursor.Close(ctx)
 
 	var Coachs []models.Coach
 	if err = cursor.All(ctx, &Coachs); err != nil {
-		return nil,0, err
+		return nil, 0, err
 	}
 
 	totalCount, err := r.collection.CountDocuments(ctx, bson.M{})
@@ -96,7 +96,7 @@ func (r *CoachRepository) GetAll(ctx context.Context, page, limit int64) ([]mode
 		return nil, 0, err
 	}
 
-	return Coachs,totalCount, nil
+	return Coachs, totalCount, nil
 }
 
 // Update cập nhật thông tin người dùng
@@ -114,33 +114,30 @@ func (r *CoachRepository) Update(ctx context.Context, Coach *models.Coach) (*mod
 	return Coach, nil
 }
 
-// Delete xóa người dùng theo ID
 func (r *CoachRepository) Delete(ctx context.Context, id string) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return fmt.Errorf("ID huấn luyện viên không hợp lệ: %w", err)
-	}
+    objectID, err := primitive.ObjectIDFromHex(id)
+    if err != nil {
+        return fmt.Errorf("ID không hợp lệ: %w", err)
+    }
 
-	// Kiểm tra ràng buộc khóa ngoại
-	configs := []ForeignKeyCheckConfig{
-		{r.db.Collection("nutrition_plans"), bson.M{"createBy": objectID}, "kế hoạch dinh dưỡng"},
-		{r.db.Collection("training_schedules"), bson.M{"createdBy": objectID}, "lịch tập luyện"},
-		{r.db.Collection("coach_certifications"), bson.M{"userId": objectID}, "chứng chỉ huấn luyện viên"},
-		{r.db.Collection("coach_athletes"), bson.M{"coachId": objectID}, "môi quan hệ huấn luyện viên - vận động viên"},
-	}
-	if err := CheckForeignKeyConstraints(ctx, configs); err != nil {
-		return err
-	}
+    result, err := r.collection.DeleteOne(ctx, bson.M{"userId": objectID})
+    if err != nil {
+        return fmt.Errorf("lỗi khi xóa huấn luyện viên: %w", err)
+    }
+    if result.DeletedCount == 0 {
+        // Không có bản ghi Coach nào bị xóa (bỏ qua)
+        return nil
+    }
+    return nil
+}
 
-	// Xóa coach
-	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
-	if err != nil {
-		return fmt.Errorf("lỗi khi xóa huấn luyện viên: %w", err)
-	}
+func (r *CoachRepository) Exists(ctx context.Context, userID string) (bool, error) {
+    // Kiểm tra xem userId có tồn tại không
+    count, err := r.collection.CountDocuments(ctx, bson.M{"userId": userID})
+    if err != nil {
+        return false, fmt.Errorf("lỗi khi kiểm tra huấn luyện viên: %w", err)
+    }
 
-	if result.DeletedCount == 0 {
-		return errors.New("huấn luyện viên không tồn tại")
-	}
-
-	return nil
+    // Nếu số lượng lớn hơn 0, tức là tồn tại
+    return count > 0, nil
 }

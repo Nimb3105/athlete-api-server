@@ -53,6 +53,27 @@ func (r *CoachAthleteRepository) GetByID(ctx context.Context, id string) (*model
 	return &coachAthlete, nil
 }
 
+func (r *CoachAthleteRepository) GetAllByAthleteId(ctx context.Context, athleteId string) ([]models.CoachAthlete, error) {
+	opts := options.Find()
+	opts.SetSort(bson.D{{Key: "createdAt", Value: -1}})
+
+	// Lọc theo athleteId
+	filter := bson.M{"athleteId": athleteId}
+
+	cursor, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var coachAthletes []models.CoachAthlete
+	if err = cursor.All(ctx, &coachAthletes); err != nil {
+		return nil, err
+	}
+
+	return coachAthletes, nil
+}
+
 func (r *CoachAthleteRepository) GetAll(ctx context.Context, page, limit int64) ([]models.CoachAthlete, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)

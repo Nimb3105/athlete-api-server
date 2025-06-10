@@ -2,6 +2,7 @@ package routes
 
 import (
 	"be/internal/controllers"
+
 	"github.com/gin-gonic/gin"
 )
 

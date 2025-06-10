@@ -14,12 +14,12 @@ import (
 
 // AchievementRepository cung cấp các phương thức CRUD cho Achievement
 type AchievementRepository struct {
-	collection     *mongo.Collection
+	collection *mongo.Collection
 }
 
 func NewAchievementRepository(achievementCollection *mongo.Collection) *AchievementRepository {
 	return &AchievementRepository{
-		collection:     achievementCollection,
+		collection: achievementCollection,
 	}
 }
 

@@ -19,8 +19,8 @@ type HealthRepository struct {
 	db         *mongo.Database
 }
 
-func NewHealthRepository(collection *mongo.Collection,db         *mongo.Database) *HealthRepository {
-	return &HealthRepository{collection:collection,db:db,}
+func NewHealthRepository(collection *mongo.Collection, db *mongo.Database) *HealthRepository {
+	return &HealthRepository{collection: collection, db: db}
 }
 
 func (r *HealthRepository) Create(ctx context.Context, health *models.Health) (*models.Health, error) {
@@ -54,22 +54,24 @@ func (r *HealthRepository) GetByID(ctx context.Context, id string) (*models.Heal
 	return &health, nil
 }
 
-func (r *HealthRepository) GetByUserID(ctx context.Context, userID string) (*models.Health, error) {
+func (r *HealthRepository) GetByUserID(ctx context.Context, userID string) ([]models.Health, error) {
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var health models.Health
-	err = r.collection.FindOne(ctx, bson.M{"userId": objectID}).Decode(&health)
+	cursor, err := r.collection.Find(ctx, bson.M{"userId": objectID})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New("health record not found")
-		}
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var health []models.Health
+	if err = cursor.All(ctx, &health); err != nil {
 		return nil, err
 	}
 
-	return &health, nil
+	return health, nil
 }
 
 func (r *HealthRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Health, error) {

@@ -90,8 +90,8 @@ func (c *ExerciseController) GetAll(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{
 			"data":       []models.Exercise{},
 			"totalCount": 0,
-			"notes":  "không có bài tập nào",
-			"message": "chưa có dữ liệu nào",
+			"notes":      "không có bài tập nào",
+			"message":    "chưa có dữ liệu nào",
 		})
 		return
 	}
@@ -101,7 +101,7 @@ func (c *ExerciseController) GetAll(ctx *gin.Context) {
 		"totalCount": totalCount,
 	})
 }
-	
+
 func (c *ExerciseController) Update(ctx *gin.Context) {
 	ctx.Param("id")
 	var exercise models.Exercise

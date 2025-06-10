@@ -82,17 +82,23 @@ func (c *GroupMemberController) GetGroupMemberByID(ctx *gin.Context) {
 // GetGroupMemberByUserID retrieves a group member by user ID
 func (c *GroupMemberController) GetGroupMemberByUserID(ctx *gin.Context) {
 	userID := ctx.Param("userID")
-	groupMember, err := c.groupMemberService.GetByUserID(ctx, userID)
+	groupMembers, err := c.groupMemberService.GetByUserID(ctx, userID)
 	if err != nil {
-		if err.Error() == "group member not found" {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
-		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": groupMember})
+	if len(groupMembers) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data": []models.TeamMember{},
+			"message": "không có dữ liệu nào",
+			"note": "Bạn có thể tạo group member mới bằng cách gửi yêu cầu POST tới /team_members",
+		})
+		return
+	}
+
+
+	ctx.JSON(http.StatusOK, gin.H{"data": groupMembers})
 }
 
 // GetAllGroupMembers retrieves all group members with pagination

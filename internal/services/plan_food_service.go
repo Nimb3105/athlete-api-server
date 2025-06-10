@@ -48,9 +48,6 @@ func (s *PlanFoodService) Delete(ctx context.Context, id string) error {
 	return s.planFoodRepo.Delete(ctx, id)
 }
 
-func (s* PlanFoodService) GetAllByNutritionPlanID(ctx context.Context, nutritionPlanID string) ([]models.PlanFood, error) {
-	if nutritionPlanID == "" {
-		return nil, errors.New("nutrition plan ID is required")
-	}
+func (s *PlanFoodService) GetAllByNutritionPlanID(ctx context.Context, nutritionPlanID string) ([]models.PlanFood, error) {
 	return s.planFoodRepo.GetAllByNutritionPlanID(ctx, nutritionPlanID)
 }

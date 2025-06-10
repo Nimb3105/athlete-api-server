@@ -134,12 +134,16 @@ func (c *PlanFoodController) GetAllByNutritionPlanID(ctx *gin.Context) {
 	nutritionPlanID := ctx.Param("nutritionPlanId")
 	planFoods, err := c.planFoodService.GetAllByNutritionPlanID(ctx, nutritionPlanID)
 	if err != nil {
-		if err.Error() == "plan-food not found" {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError,gin.H{"error": err.Error()})
 		return
+	}
+
+	if len(planFoods) == 0 {
+		ctx.JSON(http.StatusOK,gin.H{
+			"data":[]models.PlanFood{},
+			"message" : "không có dữ liệu nào",
+			"note" : "bạn có thể tạo plan food mới bằng cách gửi yêu cấu POST tới /planfoods",
+		})
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": planFoods})

@@ -31,7 +31,7 @@ func (s *InjuryService) GetByID(ctx context.Context, id string) (*models.Injury,
 }
 
 // GetByUserID retrieves an injury by user ID
-func (s *InjuryService) GetByUserID(ctx context.Context, userID string) (*models.Injury, error) {
+func (s *InjuryService) GetByUserID(ctx context.Context, userID string) ([]models.Injury, error) {
 	return s.injuryRepo.GetByUserID(ctx, userID)
 }
 

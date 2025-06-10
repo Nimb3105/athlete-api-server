@@ -31,7 +31,7 @@ func (s *HealthService) GetByID(ctx context.Context, id string) (*models.Health,
 }
 
 // GetByUserID retrieves a health record by user ID
-func (s *HealthService) GetByUserID(ctx context.Context, userID string) (*models.Health, error) {
+func (s *HealthService) GetByUserID(ctx context.Context, userID string) ([]models.Health, error) {
 	return s.healthRepo.GetByUserID(ctx, userID)
 }
 

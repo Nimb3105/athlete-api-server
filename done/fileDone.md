@@ -7,11 +7,3 @@ lỗi phân trang (
     + athlete
     + coach
 )
-
-lỗi nếu dữ liệu là null (
-    + SportUser đã sửa
-)
-
-Loại bỏ bảng trung gian (
-    
-)

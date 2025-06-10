@@ -56,7 +56,7 @@ func (r *PlanFoodRepository) GetByID(ctx context.Context, id string) (*models.Pl
 func (r *PlanFoodRepository) GetAllByNutritionPlanID(ctx context.Context, nutritionPlanID string) ([]models.PlanFood, error) {
 	objectID, err := primitive.ObjectIDFromHex(nutritionPlanID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid plan-food ID: %w", err)
+		return nil,err
 	}
 
 	cursor, err := r.collection.Find(ctx, bson.M{"nutritionPlanId": objectID})

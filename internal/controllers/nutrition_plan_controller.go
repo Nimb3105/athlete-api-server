@@ -3,13 +3,34 @@ package controllers
 import (
 	"be/internal/models"
 	"be/internal/services"
-	"encoding/json"
+	"context"
+	"time"
+
+	//"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+type CreateNutritionPlanRequest struct {
+	models.NutritionPlan
+	FoodIDs []string `json:"foodIds" validate:"required,dive,hex24"`
+}
+
+func hex24Validator(fl validator.FieldLevel) bool {
+	str := fl.Field().String()
+	_, err := primitive.ObjectIDFromHex(str)
+	return err == nil
+}
+
+type APIResponse struct {
+	Data  interface{} `json:"data,omitempty"`
+	Error string      `json:"error,omitempty"`
+}
 
 // NutritionPlanController handles HTTP requests for NutritionPlan
 type NutritionPlanController struct {
@@ -23,45 +44,33 @@ func NewNutritionPlanController(nutritionPlanService *services.NutritionPlanServ
 
 // CreateNutritionPlan creates a new nutrition plan
 func (c *NutritionPlanController) CreateNutritionPlan(ctx *gin.Context) {
-	var bodyBytes []byte
-	if rawData, err := ctx.GetRawData(); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Không thể đọc dữ liệu"})
-		return
-	} else {
-		bodyBytes = rawData
-	}
+	// Khởi tạo trình xác thực
+	validate := validator.New()
+	validate.RegisterValidation("hex24", hex24Validator)
 
-	var tempMap map[string]interface{}
-	if err := json.Unmarshal(bodyBytes, &tempMap); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Dữ liệu không đúng định dạng"})
+	var req CreateNutritionPlanRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, APIResponse{Error: "Dữ liệu không hợp lệ"})
 		return
 	}
 
-	validFields := map[string]bool{
-		"id": true, "userId": true, "CreateBy": true, "name": true,
-		"description": true, "totalCalories": true, "mealType": true, "mealTime": true,
-		"createdAt": true, "updatedAt": true, "mealCount": true,
-	}
-	for key := range tempMap {
-		if !validFields[key] {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Trường không hợp lệ: %s", key)})
-			return
-		}
-	}
-
-	var nutritionPlan models.NutritionPlan
-	if err := json.Unmarshal(bodyBytes, &nutritionPlan); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Không thể ánh xạ dữ liệu vào model"})
+	// Xác thực yêu cầu
+	if err := validate.Struct(req); err != nil {
+		ctx.JSON(http.StatusBadRequest, APIResponse{Error: fmt.Sprintf("Xác thực thất bại: %v", err)})
 		return
 	}
 
-	createdNutritionPlan, err := c.nutritionPlanService.Create(ctx, &nutritionPlan)
+	ctxTimeout, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	// Tạo kế hoạch dinh dưỡng
+	createdNutritionPlan, err := c.nutritionPlanService.Create(ctxTimeout, &req.NutritionPlan, req.FoodIDs)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, APIResponse{Error: err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"data": createdNutritionPlan})
+	ctx.JSON(http.StatusCreated, APIResponse{Data: createdNutritionPlan})
 }
 
 // GetNutritionPlanByID retrieves a nutrition plan by ID

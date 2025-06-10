@@ -118,9 +118,6 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 	// Danh sách các collection cần kiểm tra
 	configs := []ForeignKeyCheckConfig{
 		{r.db.Collection("achievements"), bson.M{"userId": objectID}, "thành tích"},
-		{r.db.Collection("athletes"), bson.M{"userId": objectID}, "vận động viên"},
-		{r.db.Collection("athlete_matches"), bson.M{"userId": objectID}, "trận đấu của vận động viên"},
-		{r.db.Collection("coaches"), bson.M{"userId": objectID}, "huấn luyện viên"},
 		{r.db.Collection("coach_certifications"), bson.M{"userId": objectID}, "chứng chỉ huấn luyện viên"},
 		{r.db.Collection("feedbacks"), bson.M{"userId": objectID}, "phản hồi"},
 		{r.db.Collection("groups"), bson.M{"createdBy": objectID}, "nhóm"},
@@ -129,7 +126,6 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 		{r.db.Collection("injuries"), bson.M{"userId": objectID}, "chấn thương"},
 		{r.db.Collection("messages"), bson.M{"senderId": objectID}, "tin nhắn"},
 		{r.db.Collection("notifications"), bson.M{"userId": objectID}, "thông báo"},
-		{r.db.Collection("performances"), bson.M{"userId": objectID}, "hiệu suất"},
 		{r.db.Collection("progresses"), bson.M{"userId": objectID}, "tiến độ"},
 		{r.db.Collection("reminders"), bson.M{"userId": objectID}, "lời nhắc"},
 		{r.db.Collection("sport_athletes"), bson.M{"userId": objectID}, "vận động viên môn thể thao"},
@@ -138,6 +134,11 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 		{r.db.Collection("training_schedule_users"), bson.M{"userId": objectID}, "người dùng lịch tập luyện"},
 		{r.db.Collection("nutrition_plans"), bson.M{"$or": []bson.M{{"userId": objectID}, {"createby": objectID}}}, "kế hoạch dinh dưỡng"},
 		{r.db.Collection("training_schedules"), bson.M{"createdBy": objectID}, "lịch tập luyện"},
+		{r.db.Collection("coach_athletes"), bson.M{"athleteId": objectID}, "mối quan hệ huấn luyện viên - vận động viên"},
+		
+		{r.db.Collection("nutrition_plans"), bson.M{"createBy": objectID}, "kế hoạch dinh dưỡng"},
+		{r.db.Collection("performances"), bson.M{"userId": objectID}, "hiệu suất"},
+		{r.db.Collection("user_matches"), bson.M{"userId": objectID}, "trận đấu của vận động viên"},
 	}
 
 	// Kiểm tra ràng buộc khóa ngoại

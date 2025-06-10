@@ -52,22 +52,24 @@ func (r *InjuryRepository) GetByID(ctx context.Context, id string) (*models.Inju
 	return &injury, nil
 }
 
-func (r *InjuryRepository) GetByUserID(ctx context.Context, userID string) (*models.Injury, error) {
+func (r *InjuryRepository) GetByUserID(ctx context.Context, userID string) ([]models.Injury, error) {
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var injury models.Injury
-	err = r.collection.FindOne(ctx, bson.M{"userId": objectID}).Decode(&injury)
+	cursor, err := r.collection.Find(ctx, bson.M{"userId": objectID})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New("injury not found")
-		}
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 
-	return &injury, nil
+	var injury []models.Injury
+	if err = cursor.All(ctx,&injury); err !=nil{
+		return nil , err
+	}
+
+	return injury, nil
 }
 
 func (r *InjuryRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Injury, error) {

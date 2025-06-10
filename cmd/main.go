@@ -61,7 +61,7 @@ func main() {
 	coachAthleteRepo := repositories.NewCoachAthleteRepository(mongoDB.CoachAthleteCollection)
 
 	// Khởi tạo service
-	userService := services.NewUserService(userRepo)
+	userService := services.NewUserService(mongoDB.Client,userRepo,athleteRepo,coachRepo)
 	coachService := services.NewCoachService(coachRepo)
 	athleteService := services.NewAthleteService(athleteRepo)
 	sportUserService := services.NewSportUserService(sportUserRepo)
@@ -83,14 +83,14 @@ func main() {
 	matchScheduleService := services.NewMatchScheduleService(matchScheduleRepo)
 	medicalHistoryService := services.NewMedicalHistoryService(medicalHistoryRepo)
 	messageService := services.NewMessageService(messageRepo)
-	nutritionPlanService := services.NewNutritionPlanService(nutritionPlanRepo)
+	planFoodService := services.NewPlanFoodService(planFoodRepo)
+	nutritionPlanService := services.NewNutritionPlanService(nutritionPlanRepo,planFoodService,foodRepo)
 	foodService := services.NewFoodService(foodRepo)
 	performanceService := services.NewPerformanceService(performanceRepo)
 	progressService := services.NewProgressService(progressRepo)
 	teamService := services.NewTeamService(teamRepo)
 	temaMemberService := services.NewTeamMemberService(temaMemberRepo)
 	tournamentService := services.NewTournamentService(tournamentRepo)
-	planFoodService := services.NewPlanFoodService(planFoodRepo)
 	coachAthleteService := services.NewCoachAthleteService(coachAthleteRepo)
 
 	// Khởi tạo controller

@@ -30,6 +30,10 @@ func (s *CoachAthleteService) GetByID(ctx context.Context, id string) (*models.C
 	return s.coachAthleteRepo.GetByID(ctx, id)
 }
 
+func (s *CoachAthleteService) GetAllByAthleteID(ctx context.Context, id string) ([]models.CoachAthlete, error) {
+	return s.coachAthleteRepo.GetAllByAthleteId(ctx, id)
+}
+
 // GetAll retrieves all coach-athlete relationships with pagination
 func (s *CoachAthleteService) GetAll(ctx context.Context, page, limit int64) ([]models.CoachAthlete, error) {
 	return s.coachAthleteRepo.GetAll(ctx, page, limit)

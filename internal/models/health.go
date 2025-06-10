@@ -13,6 +13,7 @@ type Health struct {
 	Weight    float64            `bson:"weight" json:"weight"` // Weight in kg
 	BMI       float64            `bson:"bmi" json:"bmi"`
 	BloodType string             `bson:"bloodType" json:"bloodType"`
+	Date      time.Time          `bson:"date" json:"date"`
 	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
 }

@@ -38,7 +38,7 @@ func (c *MatchScheduleController) CreateMatchSchedule(ctx *gin.Context) {
 	}
 
 	validFields := map[string]bool{
-		"id": true, "tournamentId": true, "date": true, "time": true, "location": true,
+		"id": true, "tournamentId": true, "date": true, "location": true,
 		"opponent": true, "matchType": true, "status": true, "round": true, "score": true,
 		"notes": true, "createdAt": true, "updatedAt": true,
 	}

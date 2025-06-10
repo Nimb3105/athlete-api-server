@@ -38,7 +38,7 @@ func (c *TeamMemberController) CreateTeamMember(ctx *gin.Context) {
 	}
 
 	validFields := map[string]bool{
-		"id": true, "teamId": true, "userId": true,
+		"id": true, "teamId": true, "userId": true,"dateJoined":true,
 		"createdAt": true, "updatedAt": true,
 	}
 	for key := range tempMap {

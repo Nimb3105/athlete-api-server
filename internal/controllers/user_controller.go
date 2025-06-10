@@ -140,7 +140,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 // DeleteUser xóa user theo ID
 func (c *UserController) DeleteUser(ctx *gin.Context) {
 	id := ctx.Param("id")
-	if err := c.userService.Delete(ctx, id); err != nil {
+	if err := c.userService.DeleteUser(ctx, id); err != nil {
 		if err.Error() == "user not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return

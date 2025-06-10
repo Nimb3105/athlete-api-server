@@ -62,6 +62,8 @@ func (c *CoachAthleteController) CreateCoachAthlete(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"data": createdCoachAthlete})
 }
 
+
+
 // GetCoachAthleteByID retrieves a coach-athlete relationship by ID
 func (c *CoachAthleteController) GetCoachAthleteByID(ctx *gin.Context) {
 	id := ctx.Param("id")
@@ -76,6 +78,27 @@ func (c *CoachAthleteController) GetCoachAthleteByID(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": coachAthlete})
+}
+
+func (c *CoachAthleteController) GetAllByAthleteId(ctx *gin.Context) {
+
+	athleteId := ctx.Param("userId")
+	coachAthletes, err := c.coachAthleteService.GetAllByAthleteID(ctx, athleteId)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(coachAthletes) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.CoachAthlete{},
+			"note":    "không có mối quan hệ huấn luyện viên - vận động viên nào",
+			"message": "Chưa có dữ liệu nào",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": coachAthletes})
 }
 
 // GetAllCoachAthletes retrieves all coach-athlete relationships with pagination

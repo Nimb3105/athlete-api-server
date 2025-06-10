@@ -52,22 +52,24 @@ func (r *GroupMemberRepository) GetByID(ctx context.Context, id string) (*models
 	return &groupMember, nil
 }
 
-func (r *GroupMemberRepository) GetByUserID(ctx context.Context, userID string) (*models.GroupMember, error) {
+func (r *GroupMemberRepository) GetByUserID(ctx context.Context, userID string) ([]models.GroupMember, error) {
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var groupMember models.GroupMember
-	err = r.collection.FindOne(ctx, bson.M{"userId": objectID}).Decode(&groupMember)
+	cursor, err := r.collection.Find(ctx, bson.M{"userId": objectID})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New("group member not found")
-		}
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var groupMembers []models.GroupMember
+	if err = cursor.All(ctx, &groupMembers); err != nil {
 		return nil, err
 	}
 
-	return &groupMember, nil
+	return groupMembers, nil
 }
 
 func (r *GroupMemberRepository) GetAll(ctx context.Context, page, limit int64) ([]models.GroupMember, error) {

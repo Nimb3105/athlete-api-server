@@ -31,7 +31,7 @@ func (s *GroupMemberService) GetByID(ctx context.Context, id string) (*models.Gr
 }
 
 // GetByUserID retrieves a group member by user ID
-func (s *GroupMemberService) GetByUserID(ctx context.Context, userID string) (*models.GroupMember, error) {
+func (s *GroupMemberService) GetByUserID(ctx context.Context, userID string) ([]models.GroupMember, error) {
 	return s.groupMemberRepo.GetByUserID(ctx, userID)
 }
 

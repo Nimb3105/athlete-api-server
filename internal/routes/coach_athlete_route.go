@@ -15,5 +15,6 @@ func SetupCoachAthleteRoutes(router *gin.Engine, coachAthleteController *control
 		coachAthletes.GET("", coachAthleteController.GetAllCoachAthletes)
 		coachAthletes.PUT(":id", coachAthleteController.UpdateCoachAthlete)
 		coachAthletes.DELETE(":id", coachAthleteController.DeleteCoachAthlete)
+		coachAthletes.GET("/user/:userId", coachAthleteController.GetAllByAthleteId)
 	}
 }
