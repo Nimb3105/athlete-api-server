@@ -73,7 +73,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 }
 
 // GetAll lấy danh sách tất cả người dùng với phân trang
-func (r *UserRepository) GetAll(ctx context.Context, page, limit int64) ([]models.User, error) {
+func (r *UserRepository) GetAll(ctx context.Context, page, limit int64) ([]models.User,int64, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)
 	opts.SetLimit(limit)
@@ -81,16 +81,51 @@ func (r *UserRepository) GetAll(ctx context.Context, page, limit int64) ([]model
 
 	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
-		return nil, err
+		return nil, 0,err
 	}
 	defer cursor.Close(ctx)
 
 	var users []models.User
 	if err = cursor.All(ctx, &users); err != nil {
-		return nil, err
+		return nil, 0,err
 	}
 
-	return users, nil
+	totalCount,err := r.collection.CountDocuments(ctx, bson.M{})
+	if err != nil{
+		return nil,0,err
+	}
+
+	return users,totalCount, nil
+}
+
+func (r *UserRepository) GetAllUserCoachBySportId(ctx context.Context, page, limit int64, sportId string) ([]models.User, int64, error) {
+	opts := options.Find()
+	opts.SetSkip((page - 1) * limit)
+	opts.SetLimit(limit)
+	opts.SetSort(bson.D{{Key: "createdAt", Value: -1}})
+
+	objectID, err := primitive.ObjectIDFromHex(sportId)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	cursor, err := r.collection.Find(ctx, bson.M{"sportId": objectID, "role": "Huấn luyện viên"}, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.User
+	if err = cursor.All(ctx, &users); err != nil {
+		return nil, 0, err
+	}
+
+	totalCount, err := r.collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, totalCount, nil
 }
 
 // Update cập nhật thông tin người dùng
@@ -135,7 +170,7 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 		{r.db.Collection("nutrition_plans"), bson.M{"$or": []bson.M{{"userId": objectID}, {"createby": objectID}}}, "kế hoạch dinh dưỡng"},
 		{r.db.Collection("training_schedules"), bson.M{"createdBy": objectID}, "lịch tập luyện"},
 		{r.db.Collection("coach_athletes"), bson.M{"athleteId": objectID}, "mối quan hệ huấn luyện viên - vận động viên"},
-		
+
 		{r.db.Collection("nutrition_plans"), bson.M{"createBy": objectID}, "kế hoạch dinh dưỡng"},
 		{r.db.Collection("performances"), bson.M{"userId": objectID}, "hiệu suất"},
 		{r.db.Collection("user_matches"), bson.M{"userId": objectID}, "trận đấu của vận động viên"},

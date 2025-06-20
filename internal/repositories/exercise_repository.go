@@ -53,7 +53,63 @@ func (r *ExerciseRepository) GetByID(ctx context.Context, id string) (*models.Ex
 	return &exercise, nil
 }
 
-func (r *ExerciseRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Exercise,int64, error) {
+func (r *ExerciseRepository) GetAllBySportName(ctx context.Context, sportName string, page, limit int64) ([]models.Exercise, int64, error) {
+	opts := options.Find()
+	opts.SetSkip((page - 1) * limit)
+	opts.SetLimit(limit)
+	opts.SetSort(bson.D{{Key: "createdAt", Value: -1}})
+
+	// Filter by target field
+	filter := bson.M{"sportName": sportName}
+
+	cursor, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var exercises []models.Exercise
+	if err = cursor.All(ctx, &exercises); err != nil {
+		return nil, 0, err
+	}
+
+	totalCount, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return exercises, totalCount, nil
+}
+
+func (r *ExerciseRepository) GetAllByBodyPart(ctx context.Context, bodyPart string, page, limit int64) ([]models.Exercise, int64, error) {
+	opts := options.Find()
+	opts.SetSkip((page - 1) * limit)
+	opts.SetLimit(limit)
+	opts.SetSort(bson.D{{Key: "createdAt", Value: -1}})
+
+	// Filter by target field
+	filter := bson.M{"bodyPart": bodyPart}
+
+	cursor, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var exercises []models.Exercise
+	if err = cursor.All(ctx, &exercises); err != nil {
+		return nil, 0, err
+	}
+
+	totalCount, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return exercises, totalCount, nil
+}
+
+func (r *ExerciseRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Exercise, int64, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)
 	opts.SetLimit(limit)
@@ -61,13 +117,13 @@ func (r *ExerciseRepository) GetAll(ctx context.Context, page, limit int64) ([]m
 
 	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
-		return nil,0, err
+		return nil, 0, err
 	}
 	defer cursor.Close(ctx)
 
 	var exercises []models.Exercise
 	if err = cursor.All(ctx, &exercises); err != nil {
-		return nil,0, err
+		return nil, 0, err
 	}
 
 	totalCount, err := r.collection.CountDocuments(ctx, bson.M{})

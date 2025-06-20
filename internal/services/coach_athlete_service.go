@@ -30,12 +30,24 @@ func (s *CoachAthleteService) GetByID(ctx context.Context, id string) (*models.C
 	return s.coachAthleteRepo.GetByID(ctx, id)
 }
 
-func (s *CoachAthleteService) GetAllByAthleteID(ctx context.Context, id string) ([]models.CoachAthlete, error) {
-	return s.coachAthleteRepo.GetAllByAthleteId(ctx, id)
+// GetByAthleteId retrieves a coach-athlete relationship by athlete ID
+func (s *CoachAthleteService) GetByAthleteId(ctx context.Context, athleteId string) (*models.CoachAthlete, error) {
+	if athleteId == "" {
+		return nil, errors.New("athlete ID is required")
+	}
+	return s.coachAthleteRepo.GetByAthleteId(ctx, athleteId)
+}
+
+func (s *CoachAthleteService) GetAllByCoachId(ctx context.Context, id string, page,limit int64) ([]models.CoachAthlete,int64, error) {
+	if page < 1 || limit < 1 {
+		return nil, 0, errors.New("invalid page or limit")
+	}
+	return s.coachAthleteRepo.GetAllByCoachId(ctx, id,page,limit)
 }
 
 // GetAll retrieves all coach-athlete relationships with pagination
 func (s *CoachAthleteService) GetAll(ctx context.Context, page, limit int64) ([]models.CoachAthlete, error) {
+	
 	return s.coachAthleteRepo.GetAll(ctx, page, limit)
 }
 

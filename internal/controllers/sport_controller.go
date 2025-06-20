@@ -38,7 +38,7 @@ func (c *SportController) CreateSport(ctx *gin.Context) {
 	}
 
 	validFields := map[string]bool{
-		"id": true, "name": true, "createdAt": true, "updatedAt": true,
+		"id": true, "name": true, "createdAt": true, "updatedAt": true, "position": true,
 	}
 	for key := range tempMap {
 		if !validFields[key] {
@@ -68,7 +68,7 @@ func (c *SportController) GetSportByID(ctx *gin.Context) {
 	sport, err := c.sportService.GetByID(ctx, id)
 	if err != nil {
 		if err.Error() == "sport not found" {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			ctx.JSON(http.StatusOK, gin.H{"data": nil, "message": "Không tìm thấy sport với ID đã cho"})
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -91,9 +91,9 @@ func (c *SportController) GetAllSports(ctx *gin.Context) {
 
 	if len(sports) == 0 {
 		ctx.JSON(http.StatusOK, gin.H{
-			"data": []models.Sport{},
+			"data":    []models.Sport{},
 			"message": "Không có dữ liệu nào",
-			"notes": "Bạn có thể thêm sport mới bằng cách sử dụng API tạo sport",
+			"notes":   "Bạn có thể thêm sport mới bằng cách sử dụng API tạo sport",
 		})
 		return
 	}

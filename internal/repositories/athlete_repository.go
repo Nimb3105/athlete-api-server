@@ -77,7 +77,7 @@ func (r *AthleteRepository) GetByUserID(ctx context.Context, userID string) (*mo
 }
 
 // GetAll lấy danh sách tất cả athlete với phân trang
-func (r *AthleteRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Athlete,int64, error) {
+func (r *AthleteRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Athlete, int64, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)
 	opts.SetLimit(limit)
@@ -85,13 +85,13 @@ func (r *AthleteRepository) GetAll(ctx context.Context, page, limit int64) ([]mo
 
 	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
-		return nil,0, err
+		return nil, 0, err
 	}
 	defer cursor.Close(ctx)
 
 	var athletes []models.Athlete
 	if err = cursor.All(ctx, &athletes); err != nil {
-		return nil,0, err
+		return nil, 0, err
 	}
 
 	totalCount, err := r.collection.CountDocuments(ctx, bson.M{})
@@ -99,7 +99,7 @@ func (r *AthleteRepository) GetAll(ctx context.Context, page, limit int64) ([]mo
 		return nil, 0, err
 	}
 
-	return athletes,totalCount ,nil
+	return athletes, totalCount, nil
 }
 
 // Update cập nhật thông tin athlete
@@ -136,14 +136,13 @@ func (r *AthleteRepository) Delete(ctx context.Context, userID string) error {
 	return nil
 }
 
-
 func (r *AthleteRepository) Exists(ctx context.Context, userID string) (bool, error) {
-    // Kiểm tra xem userId có tồn tại không
-    count, err := r.collection.CountDocuments(ctx, bson.M{"userId": userID})
-    if err != nil {
-        return false, fmt.Errorf("lỗi khi kiểm tra vận động viên: %w", err)
-    }
+	// Kiểm tra xem userId có tồn tại không
+	count, err := r.collection.CountDocuments(ctx, bson.M{"userId": userID})
+	if err != nil {
+		return false, fmt.Errorf("lỗi khi kiểm tra vận động viên: %w", err)
+	}
 
-    // Nếu số lượng lớn hơn 0, tức là tồn tại
-    return count > 0, nil
+	// Nếu số lượng lớn hơn 0, tức là tồn tại
+	return count > 0, nil
 }

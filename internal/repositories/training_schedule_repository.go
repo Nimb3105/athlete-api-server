@@ -14,24 +14,108 @@ import (
 )
 
 type TrainingScheduleRepository struct {
-	collection *mongo.Collection
-	db         *mongo.Database
+	collection       *mongo.Collection
+	scheduleUserRepo *TrainingScheduleUserRepository // Assuming you have this repository for TrainingScheduleUser
+	db               *mongo.Database
 }
 
-func NewTrainingScheduleRepository(collection *mongo.Collection,db         *mongo.Database) *TrainingScheduleRepository {
-	return &TrainingScheduleRepository{collection:collection,db:db}
+func NewTrainingScheduleRepository(collection *mongo.Collection, scheduleUserRepo *TrainingScheduleUserRepository, db *mongo.Database) *TrainingScheduleRepository {
+	return &TrainingScheduleRepository{collection: collection, scheduleUserRepo: scheduleUserRepo, db: db}
 }
 
-func (r *TrainingScheduleRepository) Create(ctx context.Context, schedule *models.TrainingSchedule) (*models.TrainingSchedule, error) {
+func (r *TrainingScheduleRepository) Create(ctx context.Context, schedule *models.TrainingSchedule, athleteId string) (*models.TrainingSchedule, error) {
+	// Set timestamps for the TrainingSchedule
 	schedule.CreatedAt = time.Now()
 	schedule.UpdatedAt = time.Now()
 
-	result, err := r.collection.InsertOne(ctx, schedule)
+	// Bước 1: Convert athleteId to primitive.ObjectID
+	athleteObjectID, err := primitive.ObjectIDFromHex(athleteId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("lỗi khi chuyển athleteId sang ObjectID: %v", err)
 	}
 
+	// Bước 2: Tìm tất cả TrainingScheduleUser bằng athleteId
+	filterUser := bson.M{
+		"userId": athleteObjectID,
+	}
+	var scheduleUsers []models.TrainingScheduleUser
+	cursor, err := r.scheduleUserRepo.collection.Find(ctx, filterUser)
+	if err != nil {
+		return nil, fmt.Errorf("lỗi khi truy vấn TrainingScheduleUser: %v", err)
+	}
+	if err := cursor.All(ctx, &scheduleUsers); err != nil {
+		return nil, fmt.Errorf("lỗi khi giải mã TrainingScheduleUser: %v", err)
+	}
+
+	// Bước 3: Lấy tất cả scheduleId từ TrainingScheduleUser
+	scheduleIDs := make([]primitive.ObjectID, 0, len(scheduleUsers))
+	for _, su := range scheduleUsers {
+		scheduleIDs = append(scheduleIDs, su.ScheduleID)
+	}
+
+	// Bước 4: Tìm tất cả TrainingSchedule trong cùng ngày dựa trên Date và scheduleIDs
+	startOfDay := time.Date(schedule.Date.Year(), schedule.Date.Month(), schedule.Date.Day(), 0, 0, 0, 0, schedule.Date.Location())
+	endOfDay := startOfDay.Add(24*time.Hour - time.Nanosecond)
+
+	filterSchedule := bson.M{
+		"_id": bson.M{
+			"$in": scheduleIDs,
+		},
+		"date": bson.M{
+			"$gte": startOfDay,
+			"$lte": endOfDay,
+		},
+	}
+	var existingSchedules []models.TrainingSchedule
+	cursor, err = r.collection.Find(ctx, filterSchedule)
+	if err != nil {
+		return nil, fmt.Errorf("lỗi khi truy vấn lịch trình cùng ngày: %v", err)
+	}
+	if err := cursor.All(ctx, &existingSchedules); err != nil {
+		return nil, fmt.Errorf("lỗi khi giải mã lịch trình: %v", err)
+	}
+
+	// Bước 5: Kiểm tra điều kiện giờ bắt đầu
+	for _, existing := range existingSchedules {
+		// So sánh chỉ giờ, phút, giây trong ngày
+		newStartTime := schedule.StartTime
+		existingEndTime := existing.EndTime
+
+		// Nếu StartTime và EndTime chứa ngày khác, chỉ lấy giờ/phút/giây
+		newStartHour, newStartMin, newStartSec := newStartTime.Hour(), newStartTime.Minute(), newStartTime.Second()
+		existingEndHour, existingEndMin, existingEndSec := existingEndTime.Hour(), existingEndTime.Minute(), existingEndTime.Second()
+
+		newStartTotalSec := newStartHour*3600 + newStartMin*60 + newStartSec
+		existingEndTotalSec := existingEndHour*3600 + existingEndMin*60 + existingEndSec
+
+		if newStartTotalSec <= existingEndTotalSec {
+			return nil, fmt.Errorf("giờ bắt đầu (%v) phải sau giờ kết thúc (%v) của lịch trình ID %v",
+				newStartTime.Format("15:04:05"), existingEndTime.Format("15:04:05"), existing.ID.Hex())
+		}
+	}
+
+	// Bước 6: Chèn TrainingSchedule vào collection
+	result, err := r.collection.InsertOne(ctx, schedule)
+	if err != nil {
+		return nil, fmt.Errorf("lỗi khi chèn lịch trình: %v", err)
+	}
+
+	// Set ID cho TrainingSchedule
 	schedule.ID = result.InsertedID.(primitive.ObjectID)
+
+	// Bước 7: Tạo và chèn TrainingScheduleUser
+	scheduleUser := &models.TrainingScheduleUser{
+		ScheduleID: schedule.ID,
+		UserID:     athleteObjectID,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	}
+
+	_, err = r.scheduleUserRepo.Create(ctx, scheduleUser)
+	if err != nil {
+		return nil, fmt.Errorf("lỗi khi chèn TrainingScheduleUser: %v", err)
+	}
+
 	return schedule, nil
 }
 
@@ -117,4 +201,24 @@ func (r *TrainingScheduleRepository) Delete(ctx context.Context, id string) erro
 	}
 
 	return nil
+}
+
+// training_schedule_repository.go
+func (r *TrainingScheduleRepository) MarkOverdue(ctx context.Context, now time.Time) (int64, error) {
+	filter := bson.M{
+		"endTime": bson.M{"$lt": now},
+		"status":  bson.M{"$ne": "hoàn thành"},
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"status":    "chưa hoàn thành",
+			"updatedAt": now,
+		},
+	}
+
+	res, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return 0, err
+	}
+	return res.ModifiedCount, nil
 }

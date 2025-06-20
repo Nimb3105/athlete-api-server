@@ -28,14 +28,19 @@ func (s *FoodService) Create(ctx context.Context, nutritionMeal *models.Food) (*
 	return s.nutritionMealRepo.Create(ctx, nutritionMeal)
 }
 
+func (s *FoodService) GetAllByFoodType(ctx context.Context, foodType string, page, limit int64) ([]models.Food, int64, error) {
+	if foodType == "" {
+		return nil, 0, errors.New("sportName is required")
+	}
+	if page < 1 || limit < 1 {
+		return nil, 0, errors.New("invalid page or limit")
+	}
+	return s.nutritionMealRepo.GetAllByFoodType(ctx, foodType, page, limit)
+}
+
 // GetByID retrieves a nutrition meal by ID
 func (s *FoodService) GetByID(ctx context.Context, id string) (*models.Food, error) {
 	return s.nutritionMealRepo.GetByID(ctx, id)
-}
-
-// GetByNutritionPlanID retrieves nutrition meals by nutrition plan ID
-func (s *FoodService) GetByNutritionPlanID(ctx context.Context, nutritionPlanID string) ([]models.Food, error) {
-	return s.nutritionMealRepo.GetByNutritionPlanID(ctx, nutritionPlanID)
 }
 
 // GetAll retrieves all nutrition meals with pagination

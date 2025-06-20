@@ -1,16 +1,24 @@
 package controllers
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"be/internal/models"
 	"be/internal/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
+
+type CreateTrainingScheduleRequest struct {
+	models.TrainingSchedule
+	AthleteId        string                     `json:"athleteId" validate:"required,hex24"`
+	TrainingExercise []*models.TrainingExercise `json:"trainingExercises" validate:"required,dive"`
+}
 
 type TrainingScheduleController struct {
 	service *services.TrainingScheduleService
@@ -21,45 +29,31 @@ func NewTrainingScheduleController(service *services.TrainingScheduleService) *T
 }
 
 func (c *TrainingScheduleController) CreateTrainingSchedule(ctx *gin.Context) {
-	var bodyBytes []byte
-	if rawData, err := ctx.GetRawData(); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Không thể đọc dữ liệu"})
-		return
-	} else {
-		bodyBytes = rawData
-	}
 
-	var tempMap map[string]interface{}
-	if err := json.Unmarshal(bodyBytes, &tempMap); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Dữ liệu không đúng định dạng"})
+	validate := validator.New()
+	validate.RegisterValidation("hex24", hex24Validator)
+
+	var req CreateTrainingScheduleRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, APIResponse{Error: "Dữ liệu không hợp lệ"})
 		return
 	}
 
-	validFields := map[string]bool{
-		"id": true, "date": true, "startTime": true, "endTime": true,
-		"status": true, "location": true, "type": true, "notes": true,
-		"createdBy": true, "createdAt": true, "updatedAt": true,
-	}
-	for key := range tempMap {
-		if !validFields[key] {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Trường không hợp lệ: %s", key)})
-			return
-		}
-	}
-
-	var trainingSchedule models.TrainingSchedule
-	if err := json.Unmarshal(bodyBytes, &trainingSchedule); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Không thể ánh xạ dữ liệu vào model"})
+	if err := validate.Struct(req); err != nil {
+		ctx.JSON(http.StatusBadRequest, APIResponse{Error: fmt.Sprintf("Xác thực thất bại: %v", err)})
 		return
 	}
 
-	createdTrainingSchedule, err := c.service.Create(ctx, &trainingSchedule)
+	ctxTimeout, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	createdTrainingSchedule, err := c.service.Create(ctxTimeout, &req.TrainingSchedule, req.TrainingExercise, req.AthleteId)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, APIResponse{Error: err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"data": createdTrainingSchedule})
+	ctx.JSON(http.StatusCreated, APIResponse{Data: createdTrainingSchedule})
 }
 
 func (c *TrainingScheduleController) GetByID(ctx *gin.Context) {
@@ -86,13 +80,13 @@ func (c *TrainingScheduleController) GetAll(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	if len(schedules) == 0 {
 		ctx.JSON(http.StatusOK, gin.H{
-			"data": []models.TrainingSchedule{},
+			"data":       []models.TrainingSchedule{},
 			"totalCount": 0,
-			"message": "Không có lịch tập nào",
-			"notes": "không có dữ liệu nào",
+			"message":    "Không có lịch tập nào",
+			"notes":      "không có dữ liệu nào",
 		})
 		return
 	}

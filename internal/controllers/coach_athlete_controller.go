@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // CoachAthleteController handles HTTP requests for CoachAthlete
@@ -62,8 +63,6 @@ func (c *CoachAthleteController) CreateCoachAthlete(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"data": createdCoachAthlete})
 }
 
-
-
 // GetCoachAthleteByID retrieves a coach-athlete relationship by ID
 func (c *CoachAthleteController) GetCoachAthleteByID(ctx *gin.Context) {
 	id := ctx.Param("id")
@@ -80,10 +79,50 @@ func (c *CoachAthleteController) GetCoachAthleteByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": coachAthlete})
 }
 
-func (c *CoachAthleteController) GetAllByAthleteId(ctx *gin.Context) {
+// GetCoachAthleteByAthleteId retrieves a coach-athlete relationship by athlete ID
+func (c *CoachAthleteController) GetCoachAthleteByAthleteId(ctx *gin.Context) {
+	athleteId := ctx.Param("athleteId")
+	if athleteId == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Yêu cầu cung cấp athleteId"})
+		return
+	}
+	if _, err := primitive.ObjectIDFromHex(athleteId); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "athleteId không hợp lệ"})
+		return
+	}
 
-	athleteId := ctx.Param("userId")
-	coachAthletes, err := c.coachAthleteService.GetAllByAthleteID(ctx, athleteId)
+	coachAthlete, err := c.coachAthleteService.GetByAthleteId(ctx, athleteId)
+	if err != nil {
+		if err.Error() == "coach-athlete relationship not found" {
+			ctx.JSON(http.StatusOK, gin.H{
+				"data":    nil, // hoặc []interface{}{} nếu bạn muốn mảng rỗng
+				"message": "Không tìm thấy dữ liệu",
+			})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": coachAthlete, "message": "Dữ liệu đã được tìm thấy"})
+}
+
+func (c *CoachAthleteController) GetAllByCoachId(ctx *gin.Context) {
+
+	coachId := ctx.Param("userId")
+	if coachId == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Yêu cầu cung cấp coachId"})
+		return
+	}
+	if _, err := primitive.ObjectIDFromHex(coachId); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "coachId không hợp lệ"})
+		return
+	}
+
+	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
+	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
+
+	coachAthletes, totalCount, err := c.coachAthleteService.GetAllByCoachId(ctx, coachId, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -98,7 +137,7 @@ func (c *CoachAthleteController) GetAllByAthleteId(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": coachAthletes})
+	ctx.JSON(http.StatusOK, gin.H{"data": coachAthletes, "totalCount": totalCount})
 }
 
 // GetAllCoachAthletes retrieves all coach-athlete relationships with pagination

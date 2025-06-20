@@ -22,6 +22,7 @@ type User struct {
 	Email       string             `bson:"email" json:"email"`
 	PhoneNumber string             `bson:"phoneNumber" json:"phoneNumber"`
 	DateOfBirth time.Time          `bson:"dateOfBirth" json:"dateOfBirth"`
+	SportID     primitive.ObjectID `bson:"sportId" json:"sportId"`
 	Role        string             `bson:"role" json:"role"`
 	Status      string             `bson:"status" json:"status"`
 	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`

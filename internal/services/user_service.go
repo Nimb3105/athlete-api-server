@@ -29,6 +29,13 @@ func NewUserService(client *mongo.Client, userRepo *repositories.UserRepository,
 	return &UserService{client: client, userRepo: userRepo, athleteRepo: athleteRepo, coachRepo: coachRepo}
 }
 
+func (s *UserService) GetAllUserCoachBySportId(ctx context.Context, page, limit int64, sportId string) ([]models.User, int64, error) {
+	if page < 1 || limit < 1 {
+		return nil, 0, errors.New("invalid page or limit")
+	}
+	return s.userRepo.GetAllUserCoachBySportId(ctx, page, limit, sportId)
+}
+
 // Create tạo một user mới
 func (s *UserService) Create(ctx context.Context, user *models.User) (*models.User, error) {
 	if user.Email == "" {
@@ -60,7 +67,10 @@ func (s *UserService) GetByEmail(ctx context.Context, email string) (*models.Use
 }
 
 // GetAll lấy danh sách tất cả user với phân trang
-func (s *UserService) GetAll(ctx context.Context, page, limit int64) ([]models.User, error) {
+func (s *UserService) GetAll(ctx context.Context, page, limit int64) ([]models.User, int64, error) {
+	if page < 1 || limit < 1{
+		return nil , 0, errors.New("invalid page or limit")
+	}
 	return s.userRepo.GetAll(ctx, page, limit)
 }
 

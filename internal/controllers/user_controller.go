@@ -21,6 +21,29 @@ func NewUserController(userService *services.UserService) *UserController {
 	return &UserController{userService}
 }
 
+func (c *UserController) GetAllUserCoachBySportId(ctx *gin.Context) {
+	sportId := ctx.Param("sportId")
+	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
+	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
+
+	users, totalCount, err := c.userService.GetAllUserCoachBySportId(ctx, page, limit, sportId)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(users) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Athlete{},
+			"message": "Không có dữ liệu nào",
+			"note":    "Chưa có vận động viên nào được ghi nhận",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": users, "totalCount": totalCount})
+}
+
 // CreateUser tạo một user mới
 func (c *UserController) CreateUser(ctx *gin.Context) {
 	var bodyBytes []byte
@@ -40,7 +63,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 	validFields := map[string]bool{
 		"email": true, "password": true, "fullName": true, "gender": true,
 		"phoneNumber": true, "dateOfBirth": true, "role": true, "status": true,
-		"createdAt": true, "updatedAt": true, "imageUrl": true,
+		"createdAt": true, "updatedAt": true, "imageUrl": true, "sportId": true,
 	}
 	for key := range tempMap {
 		if !validFields[key] {
@@ -101,7 +124,7 @@ func (c *UserController) GetAllUsers(ctx *gin.Context) {
 	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
 	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
 
-	users, err := c.userService.GetAll(ctx, page, limit)
+	users, totalCount, err := c.userService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -116,7 +139,7 @@ func (c *UserController) GetAllUsers(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": users})
+	ctx.JSON(http.StatusOK, gin.H{"data": users, "totalCount": totalCount})
 }
 
 // UpdateUser cập nhật thông tin user

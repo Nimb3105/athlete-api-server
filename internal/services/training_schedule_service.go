@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"be/internal/models"
 	"be/internal/repositories"
@@ -11,14 +13,16 @@ import (
 )
 
 type TrainingScheduleService struct {
-	repo *repositories.TrainingScheduleRepository
+	repo                    *repositories.TrainingScheduleRepository
+	TrainingExerciseService *TrainingExerciseService
 }
 
-func NewTrainingScheduleService(repo *repositories.TrainingScheduleRepository) *TrainingScheduleService {
-	return &TrainingScheduleService{repo}
+func NewTrainingScheduleService(repo *repositories.TrainingScheduleRepository,
+	TrainingExerciseService *TrainingExerciseService) *TrainingScheduleService {
+	return &TrainingScheduleService{repo: repo, TrainingExerciseService: TrainingExerciseService}
 }
 
-func (s *TrainingScheduleService) Create(ctx context.Context, schedule *models.TrainingSchedule) (*models.TrainingSchedule, error) {
+func (s *TrainingScheduleService) Create(ctx context.Context, schedule *models.TrainingSchedule, trainingExercises []*models.TrainingExercise, athleteId string) (*models.TrainingSchedule, error) {
 	if schedule.Date.IsZero() || schedule.StartTime.IsZero() || schedule.EndTime.IsZero() {
 		return nil, errors.New("date, start time, and end time are required")
 	}
@@ -32,7 +36,24 @@ func (s *TrainingScheduleService) Create(ctx context.Context, schedule *models.T
 		return nil, errors.New("created by is required")
 	}
 
-	return s.repo.Create(ctx, schedule)
+	createSchedule, err := s.repo.Create(ctx, schedule, athleteId)
+	if err != nil {
+		return nil, fmt.Errorf("không thể tạo lịch tập: %v", err)
+	}
+
+	for _, trainingExercise := range trainingExercises {
+		// Gán ScheduleID cho TrainingExercise
+		trainingExercise.ScheduleID = createSchedule.ID
+
+		if _, err := s.TrainingExerciseService.Create(ctx, trainingExercise); err != nil {
+			if deleteErr := s.repo.Delete(ctx, createSchedule.ID.Hex()); deleteErr != nil {
+				fmt.Printf("không thể xóa lịch tập đã tạo %s: %v\n", createSchedule.ID.Hex(), deleteErr)
+			}
+			return nil, fmt.Errorf("không thể tạo lịch tập với ID: %v", err)
+		}
+	}
+
+	return createSchedule, nil
 }
 
 func (s *TrainingScheduleService) GetByID(ctx context.Context, id string) (*models.TrainingSchedule, error) {
@@ -71,4 +92,9 @@ func (s *TrainingScheduleService) Delete(ctx context.Context, id string) error {
 		return errors.New("invalid schedule ID")
 	}
 	return s.repo.Delete(ctx, id)
+}
+
+// training_schedule_service.go
+func (s *TrainingScheduleService) AutoMarkOverdue(ctx context.Context) (int64, error) {
+	return s.repo.MarkOverdue(ctx, time.Now())
 }

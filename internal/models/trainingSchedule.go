@@ -15,6 +15,7 @@ type TrainingSchedule struct {
 	Location  string             `bson:"location" json:"location"`
 	Type      string             `bson:"type" json:"type"`
 	Notes     string             `bson:"notes" json:"notes"`
+	Progress  float64            `bson:"progress" json:"progress"`   // Percentage of completion
 	CreatedBy primitive.ObjectID `bson:"createdBy" json:"createdBy"` // CoachID
 	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`

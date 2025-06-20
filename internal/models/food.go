@@ -13,6 +13,9 @@ type Food struct {
 	FoodImage   string             `bson:"foodImage" json:"foodImage"`
 	Description string             `bson:"description" json:"description"`
 	Calories    int                `bson:"calories" json:"calories"`
+	Protein     int                `bson:"protein" json:"protein"`
+	Carbs       int                `bson:"carbs" json:"carbs"`
+	Fat         int                `bson:"fat" json:"fat"`
 	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
 }

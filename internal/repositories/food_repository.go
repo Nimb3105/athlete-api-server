@@ -22,6 +22,57 @@ func NewFoodRepository(collection *mongo.Collection, db *mongo.Database) *FoodRe
 	return &FoodRepository{collection: collection, db: db}
 }
 
+func (r *FoodRepository) FindByNutritionRange(ctx context.Context, caloriesMin, caloriesMax, proteinMin, proteinMax, carbsMin, carbsMax, fatMin, fatMax int) ([]*models.Food, error) {
+	filter := bson.M{
+		"calories": bson.M{"$gte": caloriesMin, "$lte": caloriesMax},
+		"protein":  bson.M{"$gte": proteinMin, "$lte": proteinMax},
+		"carbs":    bson.M{"$gte": carbsMin, "$lte": carbsMax},
+		"fat":      bson.M{"$gte": fatMin, "$lte": fatMax},
+	}
+
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var foods []*models.Food
+	if err := cursor.All(ctx, &foods); err != nil {
+		return nil, err
+	}
+
+	return foods, nil
+}
+
+
+func (r *FoodRepository) GetAllByFoodType(ctx context.Context, foodType string, page, limit int64) ([]models.Food, int64, error) {
+	opts := options.Find()
+	opts.SetSkip((page - 1) * limit)
+	opts.SetLimit(limit)
+	opts.SetSort(bson.D{{Key: "createdAt", Value: -1}})
+
+	// Filter by target field
+	filter := bson.M{"foodType": foodType}
+
+	cursor, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var foods []models.Food
+	if err = cursor.All(ctx, &foods); err != nil {
+		return nil, 0, err
+	}
+
+	totalCount, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return foods, totalCount, nil
+}
+
 func (r *FoodRepository) Create(ctx context.Context, nutritionMeal *models.Food) (*models.Food, error) {
 	nutritionMeal.CreatedAt = time.Now()
 	nutritionMeal.UpdatedAt = time.Now()
@@ -51,26 +102,6 @@ func (r *FoodRepository) GetByID(ctx context.Context, id string) (*models.Food, 
 	}
 
 	return &nutritionMeal, nil
-}
-
-func (r *FoodRepository) GetByNutritionPlanID(ctx context.Context, nutritionPlanID string) ([]models.Food, error) {
-	objectID, err := primitive.ObjectIDFromHex(nutritionPlanID)
-	if err != nil {
-		return nil, err
-	}
-
-	cursor, err := r.collection.Find(ctx, bson.M{"nutritionPlanId": objectID})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var nutritionMeals []models.Food
-	if err = cursor.All(ctx, &nutritionMeals); err != nil {
-		return nil, err
-	}
-
-	return nutritionMeals, nil
 }
 
 func (r *FoodRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Food, error) {

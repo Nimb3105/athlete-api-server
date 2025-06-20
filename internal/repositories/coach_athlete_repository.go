@@ -53,25 +53,52 @@ func (r *CoachAthleteRepository) GetByID(ctx context.Context, id string) (*model
 	return &coachAthlete, nil
 }
 
-func (r *CoachAthleteRepository) GetAllByAthleteId(ctx context.Context, athleteId string) ([]models.CoachAthlete, error) {
+func (r *CoachAthleteRepository) GetByAthleteId(ctx context.Context, athleteId string) (*models.CoachAthlete, error) {
+	objectID, err := primitive.ObjectIDFromHex(athleteId)
+	if err != nil {
+		return nil, fmt.Errorf("athleteId không hợp lệ: %v", err)
+	}
+	var coachAthlete models.CoachAthlete
+	err = r.collection.FindOne(ctx, bson.M{"athleteId": objectID}).Decode(&coachAthlete)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New("coach-athlete relationship not found")
+		}
+		return nil, err
+	}
+	return &coachAthlete, nil
+}
+
+func (r *CoachAthleteRepository) GetAllByCoachId(ctx context.Context, coachId string, page, limit int64) ([]models.CoachAthlete, int64, error) {
 	opts := options.Find()
+	opts.SetSkip((page - 1) * limit)
+	opts.SetLimit(limit)
 	opts.SetSort(bson.D{{Key: "createdAt", Value: -1}})
 
 	// Lọc theo athleteId
-	filter := bson.M{"athleteId": athleteId}
+	objID, err := primitive.ObjectIDFromHex(coachId)
+	if err != nil {
+		return nil, 0, fmt.Errorf("coachId không hợp lệ: %v", err)
+	}
+	filter := bson.M{"coachId": objID}
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer cursor.Close(ctx)
 
 	var coachAthletes []models.CoachAthlete
 	if err = cursor.All(ctx, &coachAthletes); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return coachAthletes, nil
+	totalCount, err := r.collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return coachAthletes, totalCount, nil
 }
 
 func (r *CoachAthleteRepository) GetAll(ctx context.Context, page, limit int64) ([]models.CoachAthlete, error) {

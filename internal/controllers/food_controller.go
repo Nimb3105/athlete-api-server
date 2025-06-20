@@ -80,6 +80,33 @@ func (c *FoodController) GetNutritionMealByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": nutritionMeal})
 }
 
+func (c *FoodController) GetAllByFoodType(ctx *gin.Context) {
+	foodType := ctx.Param("foodType")
+	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
+	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
+
+	foods, totalCount, err := c.foodService.GetAllByFoodType(ctx, foodType, page, limit)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(foods) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":       []models.Food{},
+			"totalCount": 0,
+			"notes":      "không có bài tập nào",
+			"message":    "chưa có dữ liệu nào",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"data":       foods,
+		"totalCount": totalCount,
+	})
+}
+
 // GetAllNutritionMeals retrieves all nutrition meals with pagination
 func (c *FoodController) GetAllNutritionMeals(ctx *gin.Context) {
 	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
