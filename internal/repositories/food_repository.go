@@ -22,37 +22,47 @@ func NewFoodRepository(collection *mongo.Collection, db *mongo.Database) *FoodRe
 	return &FoodRepository{collection: collection, db: db}
 }
 
-func (r *FoodRepository) FindByNutritionRange(ctx context.Context, caloriesMin, caloriesMax, proteinMin, proteinMax, carbsMin, carbsMax, fatMin, fatMax int) ([]*models.Food, error) {
-	filter := bson.M{
-		"calories": bson.M{"$gte": caloriesMin, "$lte": caloriesMax},
-		"protein":  bson.M{"$gte": proteinMin, "$lte": proteinMax},
-		"carbs":    bson.M{"$gte": carbsMin, "$lte": carbsMax},
-		"fat":      bson.M{"$gte": fatMin, "$lte": fatMax},
+// FindFoods lọc theo foodType (tùy chọn) + khoảng calories/protein/carbs/fat + phân trang
+func (r *FoodRepository) FindFoodsByFilter(
+	ctx context.Context,
+	foodType string, // "" = bỏ lọc foodType
+	caloriesMin, caloriesMax,
+	proteinMin, proteinMax,
+	carbsMin, carbsMax,
+	fatMin, fatMax int,
+	page, limit int64,
+) ([]models.Food, int64, error) {
+
+	filter := bson.M{}
+
+	// 1) optional foodType
+	if foodType != "" {
+		filter["foodType"] = foodType
 	}
 
-	cursor, err := r.collection.Find(ctx, filter)
-	if err != nil {
-		return nil, err
+	// 2) optional range helpers
+	addRange := func(field string, min, max int) {
+		if min >= 0 || max >= 0 {
+			cond := bson.M{}
+			if min >= 0 {
+				cond["$gte"] = min
+			}
+			if max >= 0 {
+				cond["$lte"] = max
+			}
+			filter[field] = cond
+		}
 	}
-	defer cursor.Close(ctx)
+	addRange("calories", caloriesMin, caloriesMax)
+	addRange("protein", proteinMin, proteinMax)
+	addRange("carbs", carbsMin, carbsMax)
+	addRange("fat", fatMin, fatMax)
 
-	var foods []*models.Food
-	if err := cursor.All(ctx, &foods); err != nil {
-		return nil, err
-	}
-
-	return foods, nil
-}
-
-
-func (r *FoodRepository) GetAllByFoodType(ctx context.Context, foodType string, page, limit int64) ([]models.Food, int64, error) {
-	opts := options.Find()
-	opts.SetSkip((page - 1) * limit)
-	opts.SetLimit(limit)
-	opts.SetSort(bson.D{{Key: "createdAt", Value: -1}})
-
-	// Filter by target field
-	filter := bson.M{"foodType": foodType}
+	// 3) pagination + sort
+	opts := options.Find().
+		SetSkip((page - 1) * limit).
+		SetLimit(limit).
+		SetSort(bson.D{{Key: "createdAt", Value: -1}})
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {
@@ -61,7 +71,7 @@ func (r *FoodRepository) GetAllByFoodType(ctx context.Context, foodType string, 
 	defer cursor.Close(ctx)
 
 	var foods []models.Food
-	if err = cursor.All(ctx, &foods); err != nil {
+	if err := cursor.All(ctx, &foods); err != nil {
 		return nil, 0, err
 	}
 
@@ -104,7 +114,7 @@ func (r *FoodRepository) GetByID(ctx context.Context, id string) (*models.Food, 
 	return &nutritionMeal, nil
 }
 
-func (r *FoodRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Food, error) {
+func (r *FoodRepository) GetAll(ctx context.Context, page, limit int64) ([]models.Food,int64, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)
 	opts.SetLimit(limit)
@@ -112,16 +122,21 @@ func (r *FoodRepository) GetAll(ctx context.Context, page, limit int64) ([]model
 
 	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer cursor.Close(ctx)
 
 	var nutritionMeals []models.Food
 	if err = cursor.All(ctx, &nutritionMeals); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return nutritionMeals, nil
+	totalCount,err:= r.collection.CountDocuments(ctx,bson.M{})
+	if err != nil{
+		return nil,0,err
+	}
+
+	return nutritionMeals,totalCount, nil
 }
 
 func (r *FoodRepository) Update(ctx context.Context, nutritionMeal *models.Food) (*models.Food, error) {

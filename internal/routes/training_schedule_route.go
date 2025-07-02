@@ -14,5 +14,6 @@ func SetupTrainingScheduleRoutes(r *gin.Engine, controller *controllers.Training
 		schedule.GET("", controller.GetAll)
 		schedule.PUT("", controller.Update)
 		schedule.DELETE("/:id", controller.Delete)
+		schedule.GET("/daily/:dailyScheduleId/:date", controller.GetAllByDailyScheduleId)
 	}
 }

@@ -80,39 +80,14 @@ func (c *FoodController) GetNutritionMealByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": nutritionMeal})
 }
 
-func (c *FoodController) GetAllByFoodType(ctx *gin.Context) {
-	foodType := ctx.Param("foodType")
-	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
-	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
 
-	foods, totalCount, err := c.foodService.GetAllByFoodType(ctx, foodType, page, limit)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	if len(foods) == 0 {
-		ctx.JSON(http.StatusOK, gin.H{
-			"data":       []models.Food{},
-			"totalCount": 0,
-			"notes":      "không có bài tập nào",
-			"message":    "chưa có dữ liệu nào",
-		})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"data":       foods,
-		"totalCount": totalCount,
-	})
-}
 
 // GetAllNutritionMeals retrieves all nutrition meals with pagination
 func (c *FoodController) GetAllNutritionMeals(ctx *gin.Context) {
 	page, _ := strconv.ParseInt(ctx.DefaultQuery("page", "1"), 10, 64)
 	limit, _ := strconv.ParseInt(ctx.DefaultQuery("limit", "10"), 10, 64)
 
-	nutritionMeals, err := c.foodService.GetAll(ctx, page, limit)
+	nutritionMeals,totalCount, err := c.foodService.GetAll(ctx, page, limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -128,7 +103,7 @@ func (c *FoodController) GetAllNutritionMeals(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": nutritionMeals})
+	ctx.JSON(http.StatusOK, gin.H{"data": nutritionMeals,"totalCount":totalCount})
 }
 
 // UpdateNutritionMeal updates a nutrition meal
@@ -162,4 +137,62 @@ func (c *FoodController) DeleteNutritionMeal(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": "nutrition meal deleted"})
+}
+
+func (h *FoodController) FindFoodsByFilter(c *gin.Context) {
+	// Nhận foodType: ưu tiên path param, sau đó tới query
+	foodType := c.Param("foodType")
+	if foodType == "" {
+		foodType = c.DefaultQuery("foodType", "")
+	}
+
+	parseInt := func(key string) int {
+		valStr := c.DefaultQuery(key, "-1")
+		val, _ := strconv.Atoi(valStr)
+		return val
+	}
+
+	caloriesMin := parseInt("caloriesMin")
+	caloriesMax := parseInt("caloriesMax")
+	proteinMin := parseInt("proteinMin")
+	proteinMax := parseInt("proteinMax")
+	carbsMin := parseInt("carbsMin")
+	carbsMax := parseInt("carbsMax")
+	fatMin := parseInt("fatMin")
+	fatMax := parseInt("fatMax")
+
+	page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 64)
+	limit, _ := strconv.ParseInt(c.DefaultQuery("limit", "10"), 10, 64)
+
+	foods, total, err := h.foodService.FindFoodsByFilter(
+		c.Request.Context(),
+		foodType,
+		caloriesMin, caloriesMax,
+		proteinMin, proteinMax,
+		carbsMin, carbsMax,
+		fatMin, fatMax,
+		page, limit,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(foods) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"data":       []models.Food{},
+			"totalCount": 0,
+			"notes":      "không có dữ liệu",
+			"message":    "chưa có món ăn nào phù hợp",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":       foods,
+		"totalCount": total,
+		"page":       page,
+		"limit":      limit,
+		"totalPages": (total + limit - 1) / limit,
+	})
 }

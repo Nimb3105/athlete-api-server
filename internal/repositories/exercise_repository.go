@@ -53,6 +53,31 @@ func (r *ExerciseRepository) GetByID(ctx context.Context, id string) (*models.Ex
 	return &exercise, nil
 }
 
+func (r *ExerciseRepository) GetAllBySportId(ctx context.Context, sportId string) ([]models.Exercise, error) {
+	// Filter by sportName field
+	objectID,err := primitive.ObjectIDFromHex(sportId)
+	if err != nil{
+		return nil, err
+	}
+	filter := bson.M{"sportId": objectID}
+
+	// Set sort by createdAt descending
+	opts := options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}})
+
+	cursor, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var exercises []models.Exercise
+	if err = cursor.All(ctx, &exercises); err != nil {
+		return nil, err
+	}
+
+	return exercises, nil
+}
+
 func (r *ExerciseRepository) GetAllBySportName(ctx context.Context, sportName string, page, limit int64) ([]models.Exercise, int64, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)

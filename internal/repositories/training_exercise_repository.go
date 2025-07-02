@@ -94,17 +94,39 @@ func (r *TrainingExerciseRepository) GetAll(ctx context.Context, page, limit int
 	return trainingExercises, nil
 }
 
+// be/internal/repositories/training_exercise_repository.go
+
 func (r *TrainingExerciseRepository) Update(ctx context.Context, trainingExercise *models.TrainingExercise) (*models.TrainingExercise, error) {
-	trainingExercise.UpdatedAt = time.Now()
+	// Xây dựng một map để cập nhật một cách tường minh
+	updateFields := bson.M{
+		"order":          trainingExercise.Order,
+		"reps":           trainingExercise.Reps,
+		"sets":           trainingExercise.Sets,
+		"weight":         trainingExercise.Weight,
+		"duration":       trainingExercise.Duration,
+		"distance":       trainingExercise.Distance,
+		"actualReps":     trainingExercise.ActualReps,
+		"actualSets":     trainingExercise.ActualSets,
+		"actualWeight":   trainingExercise.ActualWeight,
+		"actualDuration": trainingExercise.ActualDuration,
+		"actualDistance": trainingExercise.ActualDistance,
+		"status":         trainingExercise.Status,
+		"sportId":        trainingExercise.SportId,
+		"exerciseId":     trainingExercise.ExerciseID,
+		"scheduleId":     trainingExercise.ScheduleID,
+		"updatedAt":      time.Now(),
+	}
 
 	filter := bson.M{"_id": trainingExercise.ID}
-	update := bson.M{"$set": trainingExercise}
+	update := bson.M{"$set": updateFields} // Sử dụng map đã xây dựng
 
 	_, err := r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return nil, err
 	}
 
+	// Gán lại thời gian đã cập nhật vào đối tượng trả về
+	trainingExercise.UpdatedAt = updateFields["updatedAt"].(time.Time)
 	return trainingExercise, nil
 }
 
@@ -149,4 +171,27 @@ func (r *TrainingExerciseRepository) GetAllByScheduleID(ctx context.Context, sch
 	}
 
 	return exercises, nil
+}
+
+// ... (các hàm khác)
+
+// UpdateStatusByScheduleIds cập nhật trạng thái của các training exercise dựa trên danh sách schedule ID
+func (r *TrainingExerciseRepository) UpdateStatusByScheduleIds(ctx context.Context, scheduleIDs []primitive.ObjectID, status string) (int64, error) {
+	filter := bson.M{
+		"scheduleId": bson.M{"$in": scheduleIDs},
+		"status":     bson.M{"$ne": "hoàn thành"}, // Chỉ cập nhật những bài tập chưa hoàn thành
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"status":    status,
+			"updatedAt": time.Now(),
+		},
+	}
+
+	result, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.ModifiedCount, nil
 }

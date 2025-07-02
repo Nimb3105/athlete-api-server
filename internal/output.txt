@@ -1,0 +1,519 @@
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Achievement struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID      primitive.ObjectID `bson:"userId" json:"userId"` // AthleteID
+	Title       string             `bson:"title" json:"title"`
+	Description string             `bson:"description" json:"description"`
+	Date        time.Time          `bson:"date" json:"date"`
+	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Athlete struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID      primitive.ObjectID `bson:"userId" json:"userId"`
+	AthleteType string             `bson:"athleteType" json:"athleteType"` // Professional, Amateur, Collegiate, etc.
+	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Coach struct {
+	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID         primitive.ObjectID `bson:"userId" json:"userId"`
+	Experience     string             `bson:"experience" json:"experience"` // Years of experience
+	//Specialization string             `bson:"specialization" json:"specialization"`
+	Level          string             `bson:"level" json:"level"` // Junior, Senior, Professional, etc.
+	CreatedAt      time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt      time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type CoachAthlete struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	CoachID   primitive.ObjectID `bson:"coachId" json:"coachId"`
+	AthleteID primitive.ObjectID `bson:"athleteId" json:"athleteId"`
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type CoachCertification struct {
+	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID     primitive.ObjectID `bson:"userId" json:"userId"` // CoachID
+	Name       string             `bson:"name" json:"name"`
+	DateIssued time.Time          `bson:"dateIssued" json:"dateIssued"`
+	CreatedAt  time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt  time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+// Exercise struct định nghĩa bài tập
+type Exercise struct {
+	ID               primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	BodyPart         string             `bson:"bodyPart" json:"bodyPart"`
+	Equipment        string             `bson:"equipment" json:"equipment"`
+	Name             string             `bson:"name" json:"name"`
+	Target           string             `bson:"target" json:"target"`
+	SportName        string             `bson:"sportName" json:"sportName"`
+	SecondaryMuscles []string           `bson:"secondaryMuscles" json:"secondaryMuscles"`
+	Instructions     []string           `bson:"instructions" json:"instructions"`
+	GifUrl           string             `bson:"gifUrl" json:"gifUrl"`
+	CreatedAt        time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt        time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Feedback struct {
+	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID     primitive.ObjectID `bson:"userId" json:"userId"`
+	ScheduleID primitive.ObjectID `bson:"scheduleId" json:"scheduleId"`
+	Content    string             `bson:"content" json:"content"`
+	Date       time.Time          `bson:"date" json:"date"`
+	CreatedAt  time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt  time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Food struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name        string             `bson:"name" json:"name"`
+	FoodType    string             `bson:"foodType" json:"foodType"`
+	FoodImage   string             `bson:"foodImage" json:"foodImage"`
+	Description string             `bson:"description" json:"description"`
+	Calories    int                `bson:"calories" json:"calories"`
+	Protein     int                `bson:"protein" json:"protein"`
+	Carbs       int                `bson:"carbs" json:"carbs"`
+	Fat         int                `bson:"fat" json:"fat"`
+	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Group struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name        string             `bson:"name" json:"name"`
+	Description string             `bson:"description" json:"description"`
+	CreatedBy   primitive.ObjectID `bson:"createdBy" json:"createdBy"` // UserID
+	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type GroupMember struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	GroupID   primitive.ObjectID `bson:"groupId" json:"groupId"`
+	UserID    primitive.ObjectID `bson:"userId" json:"userId"`
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Health struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID    primitive.ObjectID `bson:"userId" json:"userId"` // AthleteID
+	Height    float64            `bson:"height" json:"height"` // Height in cm
+	Weight    float64            `bson:"weight" json:"weight"` // Weight in kg
+	BMI       float64            `bson:"bmi" json:"bmi"`
+	BloodType string             `bson:"bloodType" json:"bloodType"`
+	Date      time.Time          `bson:"date" json:"date"`
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Injury struct {
+	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID         primitive.ObjectID `bson:"userId" json:"userId"` // AthleteID
+	Type           string             `bson:"type" json:"type"`
+	Date           time.Time          `bson:"date" json:"date"`
+	Severity       string             `bson:"severity" json:"severity"` // Mild, Moderate, Severe
+	LocationOnBody string             `bson:"locationOnBody" json:"locationOnBody"`
+	CauseOfInjury  string             `bson:"causeOfInjury" json:"causeOfInjury"`
+	Status         string             `bson:"status" json:"status"` // Recovering, Recovered
+	CreatedAt      time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt      time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type MatchSchedule struct {
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	TournamentID primitive.ObjectID `bson:"tournamentId" json:"tournamentId"`
+	Date         time.Time          `bson:"date" json:"date"`
+	Location     string             `bson:"location" json:"location"`
+	Opponent     string             `bson:"opponent" json:"opponent"`
+	MatchType    string             `bson:"matchType" json:"matchType"`
+	Status       string             `bson:"status" json:"status"` // Scheduled, Completed, Cancelled
+	Round        string             `bson:"round" json:"round"`
+	Score        string             `bson:"score" json:"score"`
+	Notes        string             `bson:"notes" json:"notes"`
+	CreatedAt    time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt    time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type MedicalHistory struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	HealthID    primitive.ObjectID `bson:"healthId" json:"healthId"`
+	Date        time.Time          `bson:"date" json:"date"`
+	Description string             `bson:"description" json:"description"`
+	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Message struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	GroupID   primitive.ObjectID `bson:"groupId" json:"groupId"`
+	SenderID  primitive.ObjectID `bson:"senderId" json:"senderId"` // UserID
+	Content   string             `bson:"content" json:"content"`
+	Date      time.Time          `bson:"date" json:"date"`
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Notification struct {
+	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID          primitive.ObjectID `bson:"userId" json:"userId"`
+	ScheduleID      primitive.ObjectID `bson:"scheduleId,omitempty" json:"scheduleId"`
+	NutritionPlanID primitive.ObjectID `bson:"nutritionPlanId,omitempty" json:"nutritionPlanId"`
+	SentDate        time.Time          `bson:"sentDate" json:"sentDate"`
+	Status          string             `bson:"status" json:"status"` // Read, Unread
+	Type            string             `bson:"type" json:"type"`
+	Content         string             `bson:"content" json:"content"`
+	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt       time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type NutritionPlan struct {
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name          string             `bson:"name" json:"name"` // Name of the nutrition plan
+	UserID        primitive.ObjectID `bson:"userId" json:"userId"`
+	CreateBy      primitive.ObjectID `bson:"createBy" json:"createBy"`
+	TotalCalories int                `bson:"totalCalories" json:"totalCalories"`
+	MealCount     int                `bson:"mealCount" json:"mealCount"`
+	MealType      string             `bson:"mealType" json:"mealType"`       // e.g., "Breakfast", "Lunch", "Dinner", "Snack"
+	MealTime      time.Time          `bson:"mealTime" json:"mealTime"`       // Time of the meal
+	Description   string             `bson:"description" json:"description"` // Description of the nutrition plan
+	CreatedAt     time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt     time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type PlanFood struct {
+	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	FoodID          primitive.ObjectID `bson:"foodId" json:"foodId"`                   // ID of the food item
+	NutritionPlanID primitive.ObjectID `bson:"nutritionPlanId" json:"nutritionPlanId"` // ID of the nutrition plan              // e.g., Breakfast, Lunch, Dinner
+	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt       time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Reminder struct {
+	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID          primitive.ObjectID `bson:"userId,oitempty" json:"userId"`
+	ScheduleID      primitive.ObjectID `bson:"scheduleId,omitempty" json:"scheduleId"`
+	NutritionPlanID primitive.ObjectID `bson:"nutritionPlanId,omitempty" json:"nutritionPlanId"`
+	ReminderTime    time.Time          `bson:"reminderTime" json:"reminderTime"`
+	ReminderDate    time.Time          `bson:"reminderDate" json:"reminderDate"`
+	Content         string             `bson:"content" json:"content"`
+	Status          string             `bson:"status" json:"status"` // Pending, Sent, Dismissed
+	CreatedAt       time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt       time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Sport struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name      string             `bson:"name" json:"name"`
+	Position string             `bson:"position" json:"position"` // List of positions in the sport
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Team struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name        string             `bson:"name" json:"name"`
+	SportID     primitive.ObjectID `bson:"sportId" json:"sportId"`
+	Description string             `bson:"description" json:"description"`
+	CreatedBy   primitive.ObjectID `bson:"createdBy" json:"createdBy"` // UserID
+	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type TeamMember struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	TeamID    primitive.ObjectID `bson:"teamId" json:"teamId"`
+	UserID    primitive.ObjectID `bson:"userId" json:"userId"`
+	DateJoined time.Time          `bson:"dateJoined" json:"dateJoined"`
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Tournament struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name        string             `bson:"name" json:"name"`
+	Location    string             `bson:"location" json:"location"`
+	StartDate   time.Time          `bson:"startDate" json:"startDate"`
+	EndDate     time.Time          `bson:"endDate" json:"endDate"`
+	Level       string             `bson:"level" json:"level"` // Local, Regional, National, International
+	Organizer   string             `bson:"organizer" json:"organizer"`
+	Description string             `bson:"description" json:"description"`
+	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type TrainingExercise struct {
+	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	ScheduleID primitive.ObjectID `bson:"scheduleId" json:"scheduleId"`
+	ExerciseID primitive.ObjectID `bson:"exerciseId" json:"exerciseId"`
+	Order      int                `bson:"order" json:"order"`
+	Reps       int                `bson:"reps" json:"reps"`
+	Sets       int                `bson:"sets" json:"sets"`
+	Weight     float64            `bson:"weight" json:"weight"`
+	Duration   int                `bson:"duration" json:"duration"` // Duration in seconds
+	Distance   float64            `bson:"distance" json:"distance"` // Distance in meters
+	ActualReps  int                `bson:"actualReps" json:"actualReps"`
+	ActualSets  int                `bson:"actualSets" json:"actualSets"`
+	ActualWeight float64           `bson:"actualWeight" json:"actualWeight"`
+	ActualDuration int           `bson:"actualDuration" json:"actualDuration"` // Actual duration in seconds
+	ActualDistance float64        `bson:"actualDistance" json:"actualDistance"` // Actual distance in meters
+	CreatedAt  time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt  time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type TrainingSchedule struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Date      time.Time          `bson:"date" json:"date"`
+	StartTime time.Time          `bson:"startTime" json:"startTime"`
+	EndTime   time.Time          `bson:"endTime" json:"endTime"`
+	Status    string             `bson:"status" json:"status"` // Scheduled, Completed, Cancelled
+	Location  string             `bson:"location" json:"location"`
+	Type      string             `bson:"type" json:"type"`
+	Notes     string             `bson:"notes" json:"notes"`
+	Progress  float64            `bson:"progress" json:"progress"`   // Percentage of completion
+	CreatedBy primitive.ObjectID `bson:"createdBy" json:"createdBy"` // CoachID
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type TrainingScheduleUser struct {
+	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	ScheduleID primitive.ObjectID `bson:"scheduleId" json:"scheduleId"`
+	UserID     primitive.ObjectID `bson:"userId" json:"userId"` // AthleteID
+	CreatedAt  time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt  time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+const (
+	RoleAdmin     = "admin"
+	RoleUser      = "athlete"
+	RoleModerator = "coach"
+)
+
+// User represents the base user model
+type User struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Gender      string             `bson:"gender" json:"gender"`
+	ImageURL    string             `bson:"imageUrl" json:"imageUrl"`
+	FullName    string             `bson:"fullName" json:"fullName"`
+	Password    string             `bson:"password" json:"password"`
+	Email       string             `bson:"email" json:"email"`
+	PhoneNumber string             `bson:"phoneNumber" json:"phoneNumber"`
+	DateOfBirth time.Time          `bson:"dateOfBirth" json:"dateOfBirth"`
+	SportID     primitive.ObjectID `bson:"sportId" json:"sportId"`
+	Role        string             `bson:"role" json:"role"`
+	Status      string             `bson:"status" json:"status"`
+	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+package models
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type UserMatch struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	MatchID   primitive.ObjectID `bson:"matchId" json:"matchId"`
+	UserID    primitive.ObjectID `bson:"userId" json:"userId"` // AthleteID
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
+}

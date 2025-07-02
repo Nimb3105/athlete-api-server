@@ -57,9 +57,6 @@ func (s *TrainingExerciseService) Update(ctx context.Context, trainingExercise *
 	if trainingExercise.ID.IsZero() {
 		return nil, errors.New("training exercise ID is required")
 	}
-	if trainingExercise.ScheduleID.IsZero() {
-		return nil, errors.New("schedule ID is required")
-	}
 	if trainingExercise.ExerciseID.IsZero() {
 		return nil, errors.New("exercise ID is required")
 	}

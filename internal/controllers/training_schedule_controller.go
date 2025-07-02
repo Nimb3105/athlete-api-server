@@ -14,12 +14,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type CreateTrainingScheduleRequest struct {
-	models.TrainingSchedule
-	AthleteId        string                     `json:"athleteId" validate:"required,hex24"`
-	TrainingExercise []*models.TrainingExercise `json:"trainingExercises" validate:"required,dive"`
-}
-
 type TrainingScheduleController struct {
 	service *services.TrainingScheduleService
 }
@@ -33,7 +27,7 @@ func (c *TrainingScheduleController) CreateTrainingSchedule(ctx *gin.Context) {
 	validate := validator.New()
 	validate.RegisterValidation("hex24", hex24Validator)
 
-	var req CreateTrainingScheduleRequest
+	var req models.CreateTrainingScheduleRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, APIResponse{Error: "Dữ liệu không hợp lệ"})
 		return
@@ -47,7 +41,7 @@ func (c *TrainingScheduleController) CreateTrainingSchedule(ctx *gin.Context) {
 	ctxTimeout, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	createdTrainingSchedule, err := c.service.Create(ctxTimeout, &req.TrainingSchedule, req.TrainingExercise, req.AthleteId)
+	createdTrainingSchedule, err := c.service.Create(ctxTimeout, &req.TrainingSchedule, req.TrainingExercise)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, APIResponse{Error: err.Error()})
 		return
@@ -69,6 +63,30 @@ func (c *TrainingScheduleController) GetByID(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": schedule})
+}
+
+func (c *TrainingScheduleController) GetAllByDailyScheduleId(ctx *gin.Context) {
+	dailyScheduleId := ctx.Param("dailyScheduleId")
+	date := ctx.Param("date")
+
+	TrainingSchedules, err := c.service.GetAllByDailyScheduleId(ctx, dailyScheduleId, date)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(TrainingSchedules) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.TrainingSchedule{},
+			"notes":   "không có lịch tập nào",
+			"message": "chưa có dữ liệu nào",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": TrainingSchedules,
+	})
 }
 
 func (c *TrainingScheduleController) GetAll(ctx *gin.Context) {

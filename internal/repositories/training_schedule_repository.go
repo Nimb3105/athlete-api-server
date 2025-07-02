@@ -14,65 +14,41 @@ import (
 )
 
 type TrainingScheduleRepository struct {
-	collection       *mongo.Collection
-	scheduleUserRepo *TrainingScheduleUserRepository // Assuming you have this repository for TrainingScheduleUser
-	db               *mongo.Database
+	collection        *mongo.Collection
+	dailyScheduleRepo *DailyScheduleRepository // Assuming you have this repository for TrainingScheduleUser
+	db                *mongo.Database
 }
 
-func NewTrainingScheduleRepository(collection *mongo.Collection, scheduleUserRepo *TrainingScheduleUserRepository, db *mongo.Database) *TrainingScheduleRepository {
-	return &TrainingScheduleRepository{collection: collection, scheduleUserRepo: scheduleUserRepo, db: db}
+func NewTrainingScheduleRepository(collection *mongo.Collection, dailyScheduleRepo *DailyScheduleRepository, db *mongo.Database) *TrainingScheduleRepository {
+	return &TrainingScheduleRepository{collection: collection, dailyScheduleRepo: dailyScheduleRepo, db: db}
 }
 
-func (r *TrainingScheduleRepository) Create(ctx context.Context, schedule *models.TrainingSchedule, athleteId string) (*models.TrainingSchedule, error) {
+func (r *TrainingScheduleRepository) Create(ctx context.Context, schedule *models.TrainingSchedule) (*models.TrainingSchedule, error) {
 	// Set timestamps for the TrainingSchedule
 	schedule.CreatedAt = time.Now()
 	schedule.UpdatedAt = time.Now()
-
-	// Bước 1: Convert athleteId to primitive.ObjectID
-	athleteObjectID, err := primitive.ObjectIDFromHex(athleteId)
-	if err != nil {
-		return nil, fmt.Errorf("lỗi khi chuyển athleteId sang ObjectID: %v", err)
-	}
-
-	// Bước 2: Tìm tất cả TrainingScheduleUser bằng athleteId
-	filterUser := bson.M{
-		"userId": athleteObjectID,
-	}
-	var scheduleUsers []models.TrainingScheduleUser
-	cursor, err := r.scheduleUserRepo.collection.Find(ctx, filterUser)
-	if err != nil {
-		return nil, fmt.Errorf("lỗi khi truy vấn TrainingScheduleUser: %v", err)
-	}
-	if err := cursor.All(ctx, &scheduleUsers); err != nil {
-		return nil, fmt.Errorf("lỗi khi giải mã TrainingScheduleUser: %v", err)
-	}
-
-	// Bước 3: Lấy tất cả scheduleId từ TrainingScheduleUser
-	scheduleIDs := make([]primitive.ObjectID, 0, len(scheduleUsers))
-	for _, su := range scheduleUsers {
-		scheduleIDs = append(scheduleIDs, su.ScheduleID)
-	}
 
 	// Bước 4: Tìm tất cả TrainingSchedule trong cùng ngày dựa trên Date và scheduleIDs
 	startOfDay := time.Date(schedule.Date.Year(), schedule.Date.Month(), schedule.Date.Day(), 0, 0, 0, 0, schedule.Date.Location())
 	endOfDay := startOfDay.Add(24*time.Hour - time.Nanosecond)
 
 	filterSchedule := bson.M{
-		"_id": bson.M{
-			"$in": scheduleIDs,
-		},
+		"dailyScheduleId": schedule.DailyScheduleId,
 		"date": bson.M{
 			"$gte": startOfDay,
 			"$lte": endOfDay,
 		},
 	}
-	var existingSchedules []models.TrainingSchedule
-	cursor, err = r.collection.Find(ctx, filterSchedule)
+
+	cursor, err := r.collection.Find(ctx, filterSchedule)
 	if err != nil {
-		return nil, fmt.Errorf("lỗi khi truy vấn lịch trình cùng ngày: %v", err)
+		return nil, err
 	}
-	if err := cursor.All(ctx, &existingSchedules); err != nil {
-		return nil, fmt.Errorf("lỗi khi giải mã lịch trình: %v", err)
+	defer cursor.Close(ctx)
+
+	var existingSchedules []models.TrainingSchedule = make([]models.TrainingSchedule, 0)
+	if err = cursor.All(ctx, &existingSchedules); err != nil {
+		return nil, err
 	}
 
 	// Bước 5: Kiểm tra điều kiện giờ bắt đầu
@@ -102,20 +78,6 @@ func (r *TrainingScheduleRepository) Create(ctx context.Context, schedule *model
 
 	// Set ID cho TrainingSchedule
 	schedule.ID = result.InsertedID.(primitive.ObjectID)
-
-	// Bước 7: Tạo và chèn TrainingScheduleUser
-	scheduleUser := &models.TrainingScheduleUser{
-		ScheduleID: schedule.ID,
-		UserID:     athleteObjectID,
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
-	}
-
-	_, err = r.scheduleUserRepo.Create(ctx, scheduleUser)
-	if err != nil {
-		return nil, fmt.Errorf("lỗi khi chèn TrainingScheduleUser: %v", err)
-	}
-
 	return schedule, nil
 }
 
@@ -135,6 +97,44 @@ func (r *TrainingScheduleRepository) GetByID(ctx context.Context, id string) (*m
 	}
 
 	return &schedule, nil
+}
+
+func (r *TrainingScheduleRepository) GetAllByDailyScheduleId(ctx context.Context, dailyScheduleId string, date string) ([]models.TrainingSchedule, error) {
+	// Filter by sportName field
+	objectId, err := primitive.ObjectIDFromHex(dailyScheduleId)
+	if err != nil {
+		return nil, fmt.Errorf("invalid dailyScheduleId: %w", err)
+	}
+	parsedTime, err := time.Parse(time.RFC3339Nano, date)
+	if err != nil {
+		return nil, fmt.Errorf("invalid day format (expected RFC3339): %w", err)
+	}
+
+	startOfDay := time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(), 0, 0, 0, 0, parsedTime.Location())
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	filter := bson.M{
+		"dailyScheduleId": objectId,
+		"date": bson.M{
+			"$gte": startOfDay,
+			"$lt":  endOfDay,
+		},
+	}
+	// Set sort by createdAt descending
+	opts := options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}})
+
+	cursor, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var trainingSchedules []models.TrainingSchedule
+	if err = cursor.All(ctx, &trainingSchedules); err != nil {
+		return nil, err
+	}
+
+	return trainingSchedules, nil
 }
 
 func (r *TrainingScheduleRepository) GetAll(ctx context.Context, page, limit int64) ([]models.TrainingSchedule, error) {
@@ -158,16 +158,32 @@ func (r *TrainingScheduleRepository) GetAll(ctx context.Context, page, limit int
 }
 
 func (r *TrainingScheduleRepository) Update(ctx context.Context, schedule *models.TrainingSchedule) (*models.TrainingSchedule, error) {
-	schedule.UpdatedAt = time.Now()
+
+	updateFiels := bson.M{
+		"dailyScheduleId": schedule.DailyScheduleId,
+		"date":            schedule.Date,
+		"startTime":       schedule.StartTime,
+		"endTime":         schedule.EndTime,
+		"status":          schedule.Status,
+		"location":        schedule.Location,
+		"type":            schedule.Type,
+		"notes":           schedule.Notes,
+		"progress":        schedule.Progress,
+		"createdBy":       schedule.CreatedBy,
+		"sportId":         schedule.SportId,
+		"createdAt":       schedule.CreatedAt,
+		"updatedAt":       time.Now(),
+	}
 
 	filter := bson.M{"_id": schedule.ID}
-	update := bson.M{"$set": schedule}
+	update := bson.M{"$set": updateFiels}
 
 	_, err := r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return nil, err
 	}
 
+	schedule.UpdatedAt = updateFiels["updatedAt"].(time.Time)
 	return schedule, nil
 }
 
@@ -184,7 +200,6 @@ func (r *TrainingScheduleRepository) Delete(ctx context.Context, id string) erro
 		{r.db.Collection("notifications"), bson.M{"scheduleId": objectID}, "thông báo"},
 		{r.db.Collection("reminders"), bson.M{"scheduleId": objectID}, "lời nhắc"},
 		{r.db.Collection("training_exercises"), bson.M{"scheduleId": objectID}, "bài tập trong lịch tập luyện"},
-		{r.db.Collection("training_schedule_users"), bson.M{"scheduleId": objectID}, "người dùng lịch tập luyện"},
 	}
 	if err := CheckForeignKeyConstraints(ctx, configs); err != nil {
 		return err
@@ -203,22 +218,47 @@ func (r *TrainingScheduleRepository) Delete(ctx context.Context, id string) erro
 	return nil
 }
 
-// training_schedule_repository.go
-func (r *TrainingScheduleRepository) MarkOverdue(ctx context.Context, now time.Time) (int64, error) {
+// MarkOverdue đánh dấu các lịch tập đã quá hạn là "chưa hoàn thành" và trả về danh sách ID đã cập nhật
+func (r *TrainingScheduleRepository) MarkOverdue(ctx context.Context, now time.Time) ([]primitive.ObjectID, int64, error) {
 	filter := bson.M{
 		"endTime": bson.M{"$lt": now},
 		"status":  bson.M{"$ne": "hoàn thành"},
 	}
+
+	// Tìm các lịch tập thỏa mãn điều kiện
+	cursor, err := r.collection.Find(ctx, filter, options.Find().SetProjection(bson.M{"_id": 1}))
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var scheduleIDs []primitive.ObjectID
+	for cursor.Next(ctx) {
+		var result struct {
+			ID primitive.ObjectID `bson:"_id"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return nil, 0, err
+		}
+		scheduleIDs = append(scheduleIDs, result.ID)
+	}
+
+	if len(scheduleIDs) == 0 {
+		return nil, 0, nil
+	}
+
+	// Cập nhật trạng thái
 	update := bson.M{
 		"$set": bson.M{
 			"status":    "chưa hoàn thành",
 			"updatedAt": now,
 		},
 	}
+	updateFilter := bson.M{"_id": bson.M{"$in": scheduleIDs}}
 
-	res, err := r.collection.UpdateMany(ctx, filter, update)
+	res, err := r.collection.UpdateMany(ctx, updateFilter, update)
 	if err != nil {
-		return 0, err
+		return nil, 0, err
 	}
-	return res.ModifiedCount, nil
+	return scheduleIDs, res.ModifiedCount, nil
 }

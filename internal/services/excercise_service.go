@@ -45,6 +45,13 @@ func (s *ExerciseService) GetByID(ctx context.Context, id string) (*models.Exerc
 	return s.repo.GetByID(ctx, id)
 }
 
+func (s *ExerciseService) GetAllBySportId(ctx context.Context, sportId string) ([]models.Exercise, error) {
+	if _, err := primitive.ObjectIDFromHex(sportId); err != nil {
+		return nil, errors.New("invalid sport Id")
+	}
+	return s.repo.GetAllBySportId(ctx, sportId)
+}
+
 func (s *ExerciseService) GetAllBySportName(ctx context.Context, sportName string, page, limit int64) ([]models.Exercise, int64, error) {
 	if sportName == "" {
 		return nil, 0, errors.New("sportName is required")
@@ -65,9 +72,9 @@ func (s *ExerciseService) GetAllByBodyPart(ctx context.Context, bodyPart string,
 	return s.repo.GetAllByBodyPart(ctx, bodyPart, page, limit)
 }
 
-func (s *ExerciseService) GetAll(ctx context.Context, page, limit int64) ([]models.Exercise,int64, error) {
+func (s *ExerciseService) GetAll(ctx context.Context, page, limit int64) ([]models.Exercise, int64, error) {
 	if page < 1 || limit < 1 {
-		return nil,0, errors.New("invalid page or limit")
+		return nil, 0, errors.New("invalid page or limit")
 	}
 	return s.repo.GetAll(ctx, page, limit)
 }

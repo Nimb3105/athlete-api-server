@@ -37,7 +37,7 @@ func (c *ExerciseController) CreateExercise(ctx *gin.Context) {
 
 	validFields := map[string]bool{
 		"id": true, "bodyPart": true, "equipment": true, "name": true, "target": true,
-		"secondaryMuscles": true, "instructions": true, "gifUrl": true, "createdAt": true, "updatedAt": true,"sportName": true,
+		"secondaryMuscles": true, "instructions": true, "gifUrl": true, "createdAt": true, "updatedAt": true, "sportId": true, "unitType": true,
 	}
 	for key := range tempMap {
 		if !validFields[key] {
@@ -74,6 +74,29 @@ func (c *ExerciseController) GetByID(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": exercise})
+}
+
+func (c *ExerciseController) GetAllBySportId(ctx *gin.Context) {
+	sportId := ctx.Param("sportId")
+
+	exercises, err := c.service.GetAllBySportId(ctx, sportId)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(exercises) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"data":    []models.Exercise{},
+			"notes":   "không có bài tập nào",
+			"message": "chưa có dữ liệu nào",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": exercises,
+	})
 }
 
 func (c *ExerciseController) GetAllBySportName(ctx *gin.Context) {

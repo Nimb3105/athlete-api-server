@@ -14,7 +14,8 @@ func SetupExerciseRoutes(router *gin.Engine, controller *controllers.ExerciseCon
 		exercise.GET("", controller.GetAll)
 		exercise.PUT("", controller.Update)
 		exercise.DELETE("/:id", controller.Delete)
-		exercise.GET("/bodyPart/:bodyPart", controller.GetAllByBodyPart)
-		exercise.GET("/sport/:sportName", controller.GetAllBySportName)
+		//exercise.GET("/bodyPart/:bodyPart", controller.GetAllByBodyPart)
+		//exercise.GET("/sport/:sportName", controller.GetAllBySportName)
+		exercise.GET("/sport/:sportId",controller.GetAllBySportId)
 	}
 }

@@ -13,10 +13,11 @@ type Exercise struct {
 	Equipment        string             `bson:"equipment" json:"equipment"`
 	Name             string             `bson:"name" json:"name"`
 	Target           string             `bson:"target" json:"target"`
-	SportName        string             `bson:"sportName" json:"sportName"`
+	SportId          primitive.ObjectID `bson:"sportId" json:"sportId"`
 	SecondaryMuscles []string           `bson:"secondaryMuscles" json:"secondaryMuscles"`
 	Instructions     []string           `bson:"instructions" json:"instructions"`
 	GifUrl           string             `bson:"gifUrl" json:"gifUrl"`
+	UnitType         string             `bson:"unitType" json:"unitType"`
 	CreatedAt        time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt        time.Time          `bson:"updatedAt" json:"updatedAt"`
 }

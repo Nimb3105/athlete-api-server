@@ -36,7 +36,8 @@ func main() {
 	exerciseRepo := repositories.NewExerciseRepository(mongoDB.ExerciseCollection, mongoDB.Database)
 	trainingExerciseRepo := repositories.NewTrainingExerciseRepository(mongoDB.TrainingExerciseCollection)
 	TrainingScheduleUserRepo := repositories.NewTrainingScheduleUserRepository(mongoDB.TrainingScheduleUserCollection)
-	trainingScheduleRepo := repositories.NewTrainingScheduleRepository(mongoDB.TrainingScheduleCollection, TrainingScheduleUserRepo, mongoDB.Database)
+	dailyScheduleRepo := repositories.NewDailyScheduleRepository(mongoDB.DailyScheduleCollection, mongoDB.Database)
+	trainingScheduleRepo := repositories.NewTrainingScheduleRepository(mongoDB.TrainingScheduleCollection, dailyScheduleRepo, mongoDB.Database)
 	notificationRepo := repositories.NewNotificationRepository(mongoDB.NotificationCollection)
 	reminderRepo := repositories.NewReminderRepository(mongoDB.ReminderCollection)
 	achivementRepo := repositories.NewAchievementRepository(mongoDB.AchivementCollection)
@@ -68,7 +69,7 @@ func main() {
 	sportService := services.NewSportService(sportRepo)
 	exerciseService := services.NewExerciseService(exerciseRepo)
 	trainingExerciseService := services.NewTrainingExerciseService(trainingExerciseRepo)
-	trainingScheduleService := services.NewTrainingScheduleService(trainingScheduleRepo, trainingExerciseService)
+	trainingScheduleService := services.NewTrainingScheduleService(trainingScheduleRepo, trainingExerciseService, trainingExerciseRepo)
 	notificationService := services.NewNotificationService(notificationRepo)
 	reminderService := services.NewReminderService(reminderRepo)
 	TrainingScheduleUserService := services.NewTrainingScheduleUserService(TrainingScheduleUserRepo, notificationService, reminderService, trainingScheduleRepo)
@@ -92,6 +93,7 @@ func main() {
 	temaMemberService := services.NewTeamMemberService(temaMemberRepo)
 	tournamentService := services.NewTournamentService(tournamentRepo)
 	coachAthleteService := services.NewCoachAthleteService(coachAthleteRepo)
+	dailyScheduleService := services.NewDailyScheduleService(dailyScheduleRepo, trainingScheduleService)
 	InitCronJobs(trainingScheduleService) // Khởi tạo cron job
 
 	// Khởi tạo controller
@@ -127,6 +129,7 @@ func main() {
 	tournamentController := controllers.NewTournamentController(tournamentService)
 	planFoodController := controllers.NewPlanFoodController(planFoodService)
 	coachAthleteController := controllers.NewCoachAthleteController(coachAthleteService)
+	dailyScheduleController := controllers.NewDailyScheduleController(dailyScheduleService)
 
 	// Khởi tạo router Gin
 	r := gin.Default()
@@ -173,6 +176,7 @@ func main() {
 	routes.SetupTournamentRoutes(r, tournamentController)
 	routes.SetupPlanFoodRoutes(r, planFoodController)
 	routes.SetupCoachAthleteRoutes(r, coachAthleteController)
+	routes.SetupDailyScheduleRoutes(r, dailyScheduleController)
 
 	// Chạy server
 	log.Printf("Server running on port %s", cfg.Port)

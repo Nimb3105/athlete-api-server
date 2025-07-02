@@ -2,6 +2,7 @@ package routes
 
 import (
 	"be/internal/controllers"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,6 +15,6 @@ func SetupFoodRoutes(router *gin.Engine, foodController *controllers.FoodControl
 		foods.GET("", foodController.GetAllNutritionMeals)
 		foods.PUT(":id", foodController.UpdateNutritionMeal)
 		foods.DELETE(":id", foodController.DeleteNutritionMeal)
-		foods.GET("foodType/:foodType",foodController.GetAllByFoodType)
+		foods.GET("filter", foodController.FindFoodsByFilter)
 	}
 }

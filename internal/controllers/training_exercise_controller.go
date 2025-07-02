@@ -39,7 +39,7 @@ func (c *TrainingExerciseController) CreateTrainingExercise(ctx *gin.Context) {
 		"id": true, "scheduleId": true, "exerciseId": true, "order": true,"reps": true,
 		"sets": true, "weight": true, "duration": true, "distance": true,"actualReps": true,
 		"actualSets": true, "actualWeight": true, "actualDuration": true, "actualDistance": true,
-		"createdAt": true, "updatedAt": true,
+		"createdAt": true, "updatedAt": true,"status":true,"sportId":true,
 	}
 	for key := range tempMap {
 		if !validFields[key] {

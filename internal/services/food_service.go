@@ -7,6 +7,17 @@ import (
 	"errors"
 )
 
+// type foodService interface {
+// 	FilterFoodsByNutritionRange(
+// 		ctx context.Context,
+// 		caloriesMin, caloriesMax,
+// 		proteinMin, proteinMax,
+// 		carbsMin, carbsMax,
+// 		fatMin, fatMax int,
+// 		page, limit int64,
+// 	) ([]models.Food, int64, error)
+// }
+
 // NutritionMealService provides business logic methods for NutritionMeal
 type FoodService struct {
 	nutritionMealRepo *repositories.FoodRepository
@@ -28,14 +39,29 @@ func (s *FoodService) Create(ctx context.Context, nutritionMeal *models.Food) (*
 	return s.nutritionMealRepo.Create(ctx, nutritionMeal)
 }
 
-func (s *FoodService) GetAllByFoodType(ctx context.Context, foodType string, page, limit int64) ([]models.Food, int64, error) {
-	if foodType == "" {
-		return nil, 0, errors.New("sportName is required")
-	}
+func (s *FoodService) FindFoodsByFilter(
+	ctx context.Context,
+	foodType string,
+	caloriesMin, caloriesMax,
+	proteinMin, proteinMax,
+	carbsMin, carbsMax,
+	fatMin, fatMax int,
+	page, limit int64,
+) ([]models.Food, int64, error) {
+
 	if page < 1 || limit < 1 {
 		return nil, 0, errors.New("invalid page or limit")
 	}
-	return s.nutritionMealRepo.GetAllByFoodType(ctx, foodType, page, limit)
+
+	return s.nutritionMealRepo.FindFoodsByFilter(
+		ctx,
+		foodType,
+		caloriesMin, caloriesMax,
+		proteinMin, proteinMax,
+		carbsMin, carbsMax,
+		fatMin, fatMax,
+		page, limit,
+	)
 }
 
 // GetByID retrieves a nutrition meal by ID
@@ -44,7 +70,7 @@ func (s *FoodService) GetByID(ctx context.Context, id string) (*models.Food, err
 }
 
 // GetAll retrieves all nutrition meals with pagination
-func (s *FoodService) GetAll(ctx context.Context, page, limit int64) ([]models.Food, error) {
+func (s *FoodService) GetAll(ctx context.Context, page, limit int64) ([]models.Food, int64, error) {
 	return s.nutritionMealRepo.GetAll(ctx, page, limit)
 }
 

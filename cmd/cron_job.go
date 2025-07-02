@@ -1,10 +1,10 @@
-package main	
+package main
 
 import (
+	"be/internal/services"
 	"context"
 	"log"
 	"time"
-	"be/internal/services"
 
 	"github.com/robfig/cron/v3"
 )
@@ -17,7 +17,7 @@ func InitCronJobs(scheduleService *services.TrainingScheduleService) {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		updatedCount, err := scheduleService.AutoMarkOverdue(ctx)
+		updatedCount, updatedExercises, err := scheduleService.AutoMarkOverdue(ctx)
 		if err != nil {
 			log.Printf("[CRON] Lỗi cập nhật trạng thái quá hạn: %v", err)
 			return
@@ -25,6 +25,10 @@ func InitCronJobs(scheduleService *services.TrainingScheduleService) {
 
 		if updatedCount > 0 {
 			log.Printf("[CRON] Đã cập nhật %d lịch tập thành 'chưa hoàn thành'", updatedCount)
+		}
+
+		if updatedExercises > 0 {
+			log.Printf("[CRON] Đã cập nhật %d bài tập thành 'chưa hoàn thành'", updatedExercises)
 		}
 	})
 	if err != nil {

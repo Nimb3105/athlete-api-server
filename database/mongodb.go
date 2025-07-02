@@ -45,6 +45,7 @@ type MongoDB struct {
 	TeamCollection                 *mongo.Collection
 	PlanFoodCollection             *mongo.Collection
 	CoachAthleteCollection         *mongo.Collection
+	DailyScheduleCollection        *mongo.Collection
 }
 
 // ConnectMongoDB khởi tạo kết nối tới MongoDB
@@ -100,6 +101,7 @@ func ConnectMongoDB(config *config.Config) (*MongoDB, error) {
 		TeamCollection:                 db.Collection("teams"),
 		PlanFoodCollection:             db.Collection("plan_foods"),
 		CoachAthleteCollection:         db.Collection("coach_athletes"),
+		DailyScheduleCollection:        db.Collection("daily_schedules"),
 	}, nil
 }
 
