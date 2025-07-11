@@ -98,6 +98,31 @@ func (r *UserRepository) GetAll(ctx context.Context, page, limit int64) ([]model
 	return users,totalCount, nil
 }
 
+func (r *UserRepository) GetUsersByRoleWithPagination(ctx context.Context, page, limit int64, role string) ([]models.User, int64, error) {
+	opts := options.Find()
+	opts.SetSkip((page - 1) * limit)
+	opts.SetLimit(limit)
+	opts.SetSort(bson.D{{Key: "createdAt", Value: -1}})
+
+	cursor, err := r.collection.Find(ctx, bson.M{"role": role}, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.User
+	if err = cursor.All(ctx, &users); err != nil {
+		return nil, 0, err
+	}
+
+	totalCount, err := r.collection.CountDocuments(ctx, bson.M{"role": role})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, totalCount, nil
+}
+
 func (r *UserRepository) GetAllUserCoachBySportId(ctx context.Context, page, limit int64, sportId string) ([]models.User, int64, error) {
 	opts := options.Find()
 	opts.SetSkip((page - 1) * limit)
@@ -143,53 +168,22 @@ func (r *UserRepository) Update(ctx context.Context, user *models.User) (*models
 	return user, nil
 }
 
-// Delete xóa người dùng theo ID
+// Delete xóa người dùng theo ID (chỉ thực hiện xóa)
 func (r *UserRepository) Delete(ctx context.Context, id string) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return fmt.Errorf("ID người dùng không hợp lệ: %w", err)
-	}
+    objectID, err := primitive.ObjectIDFromHex(id)
+    if err != nil {
+        return fmt.Errorf("ID người dùng không hợp lệ: %w", err)
+    }
 
-	// Danh sách các collection cần kiểm tra
-	configs := []ForeignKeyCheckConfig{
-		{r.db.Collection("achievements"), bson.M{"userId": objectID}, "thành tích"},
-		{r.db.Collection("coach_certifications"), bson.M{"userId": objectID}, "chứng chỉ huấn luyện viên"},
-		{r.db.Collection("feedbacks"), bson.M{"userId": objectID}, "phản hồi"},
-		{r.db.Collection("groups"), bson.M{"createdBy": objectID}, "nhóm"},
-		{r.db.Collection("group_members"), bson.M{"userId": objectID}, "thành viên nhóm"},
-		{r.db.Collection("healths"), bson.M{"userId": objectID}, "sức khỏe"},
-		{r.db.Collection("injuries"), bson.M{"userId": objectID}, "chấn thương"},
-		{r.db.Collection("messages"), bson.M{"senderId": objectID}, "tin nhắn"},
-		{r.db.Collection("notifications"), bson.M{"userId": objectID}, "thông báo"},
-		{r.db.Collection("progresses"), bson.M{"userId": objectID}, "tiến độ"},
-		{r.db.Collection("reminders"), bson.M{"userId": objectID}, "lời nhắc"},
-		{r.db.Collection("sport_athletes"), bson.M{"userId": objectID}, "vận động viên môn thể thao"},
-		{r.db.Collection("teams"), bson.M{"createdBy": objectID}, "đội"},
-		{r.db.Collection("team_members"), bson.M{"userId": objectID}, "thành viên đội"},
-		{r.db.Collection("training_schedule_users"), bson.M{"userId": objectID}, "người dùng lịch tập luyện"},
-		{r.db.Collection("nutrition_plans"), bson.M{"$or": []bson.M{{"userId": objectID}, {"createby": objectID}}}, "kế hoạch dinh dưỡng"},
-		{r.db.Collection("training_schedules"), bson.M{"createdBy": objectID}, "lịch tập luyện"},
-		{r.db.Collection("coach_athletes"), bson.M{"athleteId": objectID}, "mối quan hệ huấn luyện viên - vận động viên"},
+    // Chỉ xóa user, không kiểm tra khóa ngoại ở đây nữa
+    result, err := r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
+    if err != nil {
+        return fmt.Errorf("lỗi khi xóa người dùng: %w", err)
+    }
 
-		{r.db.Collection("nutrition_plans"), bson.M{"createBy": objectID}, "kế hoạch dinh dưỡng"},
-		{r.db.Collection("performances"), bson.M{"userId": objectID}, "hiệu suất"},
-		{r.db.Collection("user_matches"), bson.M{"userId": objectID}, "trận đấu của vận động viên"},
-	}
+    if result.DeletedCount == 0 {
+        return errors.New("người dùng không tồn tại")
+    }
 
-	// Kiểm tra ràng buộc khóa ngoại
-	if err := CheckForeignKeyConstraints(ctx, configs); err != nil {
-		return err
-	}
-
-	// Xóa user nếu không có ràng buộc
-	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
-	if err != nil {
-		return fmt.Errorf("lỗi khi xóa người dùng: %w", err)
-	}
-
-	if result.DeletedCount == 0 {
-		return errors.New("người dùng không tồn tại")
-	}
-
-	return nil
+    return nil
 }

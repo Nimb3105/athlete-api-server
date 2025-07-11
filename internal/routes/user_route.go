@@ -18,5 +18,6 @@ func SetupUserRoutes(router *gin.Engine, userController *controllers.UserControl
 		users.PUT(":id", userController.UpdateUser)
 		users.DELETE(":id", userController.DeleteUser)
 		users.GET("coach/sport/:sportId", userController.GetAllUserCoachBySportId)
+		users.GET("role/:role", userController.GetUsersByRoleWithPagination)
 	}
 }

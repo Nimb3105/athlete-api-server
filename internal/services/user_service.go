@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -21,12 +23,20 @@ type UserService struct {
 	userRepo    *repositories.UserRepository
 	athleteRepo *repositories.AthleteRepository
 	coachRepo   *repositories.CoachRepository
+	DB          *mongo.Database
 }
 
 // NewUserService tạo một UserService mới
-func NewUserService(client *mongo.Client, userRepo *repositories.UserRepository, athleteRepo *repositories.AthleteRepository,
+func NewUserService(DB *mongo.Database, client *mongo.Client, userRepo *repositories.UserRepository, athleteRepo *repositories.AthleteRepository,
 	coachRepo *repositories.CoachRepository) *UserService {
-	return &UserService{client: client, userRepo: userRepo, athleteRepo: athleteRepo, coachRepo: coachRepo}
+	return &UserService{client: client, userRepo: userRepo, athleteRepo: athleteRepo, coachRepo: coachRepo, DB: DB}
+}
+
+func (s *UserService) GetUsersByRoleWithPagination(ctx context.Context, page, limit int64, role string) ([]models.User, int64, error) {
+	if page < 1 || limit < 1 {
+		return nil, 0, errors.New("invalid page or limit")
+	}
+	return s.userRepo.GetUsersByRoleWithPagination(ctx, page, limit, role)
 }
 
 func (s *UserService) GetAllUserCoachBySportId(ctx context.Context, page, limit int64, sportId string) ([]models.User, int64, error) {
@@ -68,8 +78,8 @@ func (s *UserService) GetByEmail(ctx context.Context, email string) (*models.Use
 
 // GetAll lấy danh sách tất cả user với phân trang
 func (s *UserService) GetAll(ctx context.Context, page, limit int64) ([]models.User, int64, error) {
-	if page < 1 || limit < 1{
-		return nil , 0, errors.New("invalid page or limit")
+	if page < 1 || limit < 1 {
+		return nil, 0, errors.New("invalid page or limit")
 	}
 	return s.userRepo.GetAll(ctx, page, limit)
 }
@@ -117,47 +127,55 @@ func (s *UserService) Update(ctx context.Context, user *models.User) (*models.Us
 // 	return nil
 // }
 
-// DeleteUser xóa user và bản ghi Athlete hoặc Coach liên quan
+// internal/services/user_service.go
+
+// internal/services/user_service.go
+
 func (s *UserService) DeleteUser(ctx context.Context, id string) error {
-	// Chuyển đổi id thành ObjectID
-
-	// Sử dụng transaction để đảm bảo tính toàn vẹn
-	session, err := s.client.StartSession()
+	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return fmt.Errorf("không thể bắt đầu session: %w", err)
-	}
-	defer session.EndSession(ctx)
-
-	err = session.StartTransaction()
-	if err != nil {
-		return fmt.Errorf("không thể bắt đầu transaction: %w", err)
+		return fmt.Errorf("ID người dùng không hợp lệ: %w", err)
 	}
 
+	// === KIỂM TRA KHÓA NGOẠI ===
+	configs := []repositories.ForeignKeyCheckConfig{
+		// ... (giữ nguyên phần kiểm tra khóa ngoại của bạn)
+		{Collection: s.DB.Collection("achievements"), Filter: bson.M{"userId": objectID}, Name: "thành tích"},
+		{Collection: s.DB.Collection("coach_certifications"), Filter: bson.M{"userId": objectID}, Name: "chứng chỉ huấn luyện viên"},
+		{Collection: s.DB.Collection("feedbacks"), Filter: bson.M{"userId": objectID}, Name: "phản hồi"},
+		{Collection: s.DB.Collection("groups"), Filter: bson.M{"createdBy": objectID}, Name: "nhóm"},
+		{Collection: s.DB.Collection("group_members"), Filter: bson.M{"userId": objectID}, Name: "thành viên nhóm"},
+		{Collection: s.DB.Collection("healths"), Filter: bson.M{"userId": objectID}, Name: "sức khỏe"},
+		{Collection: s.DB.Collection("injuries"), Filter: bson.M{"userId": objectID}, Name: "chấn thương"},
+		{Collection: s.DB.Collection("messages"), Filter: bson.M{"senderId": objectID}, Name: "tin nhắn"},
+		{Collection: s.DB.Collection("notifications"), Filter: bson.M{"userId": objectID}, Name: "thông báo"},
+		{Collection: s.DB.Collection("reminders"), Filter: bson.M{"userId": objectID}, Name: "lời nhắc"},
+		{Collection: s.DB.Collection("team_members"), Filter: bson.M{"userId": objectID}, Name: "thành viên đội"},
+		{Collection: s.DB.Collection("training_schedule_users"), Filter: bson.M{"userId": objectID}, Name: "người dùng lịch tập luyện"},
+		{Collection: s.DB.Collection("nutrition_plans"), Filter: bson.M{"$or": []bson.M{{"userId": objectID}, {"createBy": objectID}}}, Name: "kế hoạch dinh dưỡng"},
+		{Collection: s.DB.Collection("training_schedules"), Filter: bson.M{"createdBy": objectID}, Name: "lịch tập luyện"},
+		{Collection: s.DB.Collection("user_matches"), Filter: bson.M{"userId": objectID}, Name: "trận đấu của vận động viên"},
+		{Collection: s.DB.Collection("coach_athletes"), Filter: bson.M{"$or": []bson.M{{"athleteId": objectID}, {"coachId": objectID}}}, Name: "mối quan hệ huấn luyện viên - vận động viên"},
+	}
+
+	if err := repositories.CheckForeignKeyConstraints(ctx, configs); err != nil {
+		return err
+	}
+
+	// === TIẾN HÀNH XÓA ===
 	// Xóa bản ghi Athlete (nếu có)
-	err = s.athleteRepo.Delete(ctx, id)
-	if err != nil {
-		session.AbortTransaction(ctx)
+	if err := s.athleteRepo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("không thể xóa vận động viên: %w", err)
 	}
 
 	// Xóa bản ghi Coach (nếu có)
-	err = s.coachRepo.Delete(ctx, id)
-	if err != nil {
-		session.AbortTransaction(ctx)
+	if err := s.coachRepo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("không thể xóa huấn luyện viên: %w", err)
 	}
 
-	// Xóa user
-	err = s.userRepo.Delete(ctx, id)
-	if err != nil {
-		session.AbortTransaction(ctx)
+	// Cuối cùng, xóa user
+	if err := s.userRepo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("không thể xóa người dùng: %w", err)
-	}
-
-	// Commit transaction
-	err = session.CommitTransaction(ctx)
-	if err != nil {
-		return fmt.Errorf("không thể commit transaction: %w", err)
 	}
 
 	return nil

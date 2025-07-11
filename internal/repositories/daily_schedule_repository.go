@@ -141,7 +141,7 @@ func (r *DailyScheduleRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	if result.DeletedCount == 0 {
-		return errors.New("Daily lịch tập không tồn tại")
+		return errors.New("daily lịch tập không tồn tại")
 	}
 
 	return nil
