@@ -20,6 +20,14 @@ func NewDailyScheduleService(repo *repositories.DailyScheduleRepository, trainin
 	return &DailyScheduleService{repo: repo, TrainingScheduleService: trainingScheduleService}
 }
 
+func (s *DailyScheduleService) GetAllDailySchedulesByUserId(ctx context.Context, userId string) ([]models.DailySchedule, error) {
+	return s.repo.FindByUserId(ctx, userId)
+}
+
+func (s *DailyScheduleService) GetByCreatorId(ctx context.Context, creatorId string) ([]models.DailySchedule, error) {
+	return s.repo.FindByCreatorId(ctx, creatorId)
+}
+
 func (s *DailyScheduleService) Create(ctx context.Context, dailySchedule *models.DailySchedule, trainingSchedules []models.CreateTrainingScheduleRequest, trainingExercises []*models.TrainingExercise) (*models.DailySchedule, error) {
 	createDaily, err := s.repo.Create(ctx, dailySchedule)
 	if err != nil {

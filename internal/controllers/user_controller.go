@@ -217,3 +217,15 @@ func (c *UserController) Login(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"token": token})
 }
+
+func (u *UserController) GetUnassignedAthletes(ctx *gin.Context) {
+	sportId := ctx.Param("sportId")
+
+	athletes, err := u.userService.GetUnassignedAthletes(ctx, sportId)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	
+	ctx.JSON(http.StatusOK, gin.H{"data": athletes})
+}

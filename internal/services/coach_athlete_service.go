@@ -63,3 +63,7 @@ func (s *CoachAthleteService) Update(ctx context.Context, coachAthlete *models.C
 func (s *CoachAthleteService) Delete(ctx context.Context, id string) error {
 	return s.coachAthleteRepo.Delete(ctx, id)
 }
+
+func (s *CoachAthleteService) DeleteAllByCoachId(ctx context.Context, coachId string) error {
+	return s.coachAthleteRepo.DeleteAllByCoachId(ctx, coachId)
+}

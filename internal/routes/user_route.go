@@ -19,5 +19,6 @@ func SetupUserRoutes(router *gin.Engine, userController *controllers.UserControl
 		users.DELETE(":id", userController.DeleteUser)
 		users.GET("coach/sport/:sportId", userController.GetAllUserCoachBySportId)
 		users.GET("role/:role", userController.GetUsersByRoleWithPagination)
+		users.GET("unassigned-athletes/:sportId",userController.GetUnassignedAthletes)
 	}
 }

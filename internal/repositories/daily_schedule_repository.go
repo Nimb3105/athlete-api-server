@@ -22,6 +22,48 @@ func NewDailyScheduleRepository(collection *mongo.Collection, db *mongo.Database
 	return &DailyScheduleRepository{collection: collection, db: db}
 }
 
+func (r *DailyScheduleRepository) FindByUserId(ctx context.Context, userId string) ([]models.DailySchedule, error) {
+	objectID, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		return nil, errors.New("invalid userId id")
+	}
+
+	filter := bson.M{"userId": objectID}
+
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var schedules []models.DailySchedule
+	if err := cursor.All(ctx, &schedules); err != nil {
+		return nil, err
+	}
+	return schedules, nil
+}
+
+func (r *DailyScheduleRepository) FindByCreatorId(ctx context.Context, creatorId string) ([]models.DailySchedule, error) {
+	creatorObjectId, err := primitive.ObjectIDFromHex(creatorId)
+	if err != nil {
+		return nil, errors.New("invalid createdBy id")
+	}
+
+	filter := bson.M{"createdBy": creatorObjectId}
+
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var schedules []models.DailySchedule
+	if err := cursor.All(ctx, &schedules); err != nil {
+		return nil, err
+	}
+	return schedules, nil
+}
+
 func (r *DailyScheduleRepository) Create(ctx context.Context, dailySchedule *models.DailySchedule) (*models.DailySchedule, error) {
 	dailySchedule.CreatedAt = time.Now()
 	dailySchedule.UpdatedAt = time.Now()

@@ -26,6 +26,35 @@ func NewUserRepository(collection *mongo.Collection, db *mongo.Database) *UserRe
 	}
 }
 
+func (r *UserRepository) FindUnassignedAthletesBySport(ctx context.Context, sportId string, excludeIds []primitive.ObjectID) ([]models.User, error) {
+	objectID, err := primitive.ObjectIDFromHex(sportId)
+    if err != nil {
+        return nil, fmt.Errorf("invalid coach ID: %w", err)
+    }
+
+	filter := bson.M{
+		"role":    "Vận động viên",
+		"sportId": objectID,
+	}
+
+	if len(excludeIds) > 0 {
+		filter["_id"] = bson.M{"$nin": excludeIds}
+	}
+
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.User
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+
 func (r *UserRepository) Create(ctx context.Context, user *models.User) (*models.User, error) {
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()

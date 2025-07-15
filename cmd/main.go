@@ -31,7 +31,6 @@ func main() {
 	userRepo := repositories.NewUserRepository(mongoDB.UserCollection, mongoDB.Database)
 	coachRepo := repositories.NewCoachRepository(mongoDB.CoachCollection, mongoDB.Database)
 	athleteRepo := repositories.NewAthleteRepository(mongoDB.AthleteCollection, mongoDB.Database)
-	//sportUserRepo := repositories.NewSportUserRepository(mongoDB.SportUserCollection)
 	sportRepo := repositories.NewSportRepository(mongoDB.SportCollection, mongoDB.Database)
 	exerciseRepo := repositories.NewExerciseRepository(mongoDB.ExerciseCollection, mongoDB.Database)
 	trainingExerciseRepo := repositories.NewTrainingExerciseRepository(mongoDB.TrainingExerciseCollection)
@@ -61,7 +60,7 @@ func main() {
 	coachAthleteRepo := repositories.NewCoachAthleteRepository(mongoDB.CoachAthleteCollection)
 
 	// Khởi tạo service
-	userService := services.NewUserService(mongoDB.Database,mongoDB.Client, userRepo, athleteRepo, coachRepo)
+	userService := services.NewUserService(coachAthleteRepo,mongoDB.Database,mongoDB.Client, userRepo, athleteRepo, coachRepo)
 	coachService := services.NewCoachService(coachRepo)
 	athleteService := services.NewAthleteService(athleteRepo)
 	//sportUserService := services.NewSportUserService(sportUserRepo)

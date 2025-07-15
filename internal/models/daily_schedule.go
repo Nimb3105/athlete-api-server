@@ -14,6 +14,7 @@ type DailySchedule struct {
 	SportId   primitive.ObjectID `bson:"sportId" json:"sportId"`
 	StartDate time.Time          `bson:"startDate" json:"startDate"`
 	EndDate   time.Time          `bson:"endDate" json:"endDate"`
+	CreatedBy primitive.ObjectID `bson:"createdBy" json:"createdBy"`
 	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
 }

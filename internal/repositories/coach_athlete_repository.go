@@ -22,6 +22,26 @@ func NewCoachAthleteRepository(collection *mongo.Collection) *CoachAthleteReposi
 	return &CoachAthleteRepository{collection: collection}
 }
 
+func (r *CoachAthleteRepository) GetAllAssignedAthleteIds(ctx context.Context) ([]primitive.ObjectID, error) {
+	cursor, err := r.collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var ids []primitive.ObjectID
+	for cursor.Next(ctx) {
+		var rel struct {
+			AthleteId primitive.ObjectID `bson:"athleteId"`
+		}
+		if err := cursor.Decode(&rel); err != nil {
+			return nil, err
+		}
+		ids = append(ids, rel.AthleteId)
+	}
+	return ids, nil
+}
+
 func (r *CoachAthleteRepository) Create(ctx context.Context, coachAthlete *models.CoachAthlete) (*models.CoachAthlete, error) {
 	coachAthlete.CreatedAt = time.Now()
 	coachAthlete.UpdatedAt = time.Now()
@@ -150,5 +170,21 @@ func (r *CoachAthleteRepository) Delete(ctx context.Context, id string) error {
 		return errors.New("coach-athlete relationship not found")
 	}
 
+	return nil
+}
+func (r *CoachAthleteRepository) DeleteAllByCoachId(ctx context.Context, coachId string) error {
+	objectID, err := primitive.ObjectIDFromHex(coachId)
+	if err != nil {
+		return fmt.Errorf("invalid coach ID: %w", err)
+	}
+	filter := bson.M{"coachId": objectID}
+
+	res, err := r.collection.DeleteMany(ctx, filter)
+	if err != nil {
+		return err
+	}
+	if res.DeletedCount == 0 {
+		return errors.New("no coach-athlete relationships found")
+	}
 	return nil
 }

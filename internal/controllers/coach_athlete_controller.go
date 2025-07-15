@@ -195,3 +195,17 @@ func (c *CoachAthleteController) DeleteCoachAthlete(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"data": "coach-athlete relationship deleted"})
 }
+func (c *CoachAthleteController) DeleteAllByCoachId(ctx *gin.Context) {
+	coachId := ctx.Param("coachId")
+	err := c.coachAthleteService.DeleteAllByCoachId(ctx, coachId)
+	if err != nil {
+		if err.Error() == "no coach-athlete relationships found" {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "all coach-athlete relationships deleted for coachId: " + coachId})
+}

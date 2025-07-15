@@ -24,12 +24,24 @@ type UserService struct {
 	athleteRepo *repositories.AthleteRepository
 	coachRepo   *repositories.CoachRepository
 	DB          *mongo.Database
+	coachAthleteRepo  *repositories.CoachAthleteRepository
 }
 
+
 // NewUserService tạo một UserService mới
-func NewUserService(DB *mongo.Database, client *mongo.Client, userRepo *repositories.UserRepository, athleteRepo *repositories.AthleteRepository,
+func NewUserService(coachAthleteRepo  *repositories.CoachAthleteRepository,DB *mongo.Database, client *mongo.Client, userRepo *repositories.UserRepository, athleteRepo *repositories.AthleteRepository,
 	coachRepo *repositories.CoachRepository) *UserService {
-	return &UserService{client: client, userRepo: userRepo, athleteRepo: athleteRepo, coachRepo: coachRepo, DB: DB}
+	return &UserService{client: client, userRepo: userRepo, athleteRepo: athleteRepo, coachRepo: coachRepo, DB: DB,coachAthleteRepo: coachAthleteRepo}
+}
+
+
+func (s *UserService) GetUnassignedAthletes(ctx context.Context, sportId string) ([]models.User, error) {
+	assignedAthleteIds, err := s.coachAthleteRepo.GetAllAssignedAthleteIds(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.userRepo.FindUnassignedAthletesBySport(ctx, sportId, assignedAthleteIds)
 }
 
 func (s *UserService) GetUsersByRoleWithPagination(ctx context.Context, page, limit int64, role string) ([]models.User, int64, error) {
