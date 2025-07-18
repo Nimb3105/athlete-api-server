@@ -36,7 +36,7 @@ func (c *ExerciseController) CreateExercise(ctx *gin.Context) {
 	}
 
 	validFields := map[string]bool{
-		"id": true, "bodyPart": true, "equipment": true, "name": true, "target": true,
+		"id": true, "bodyPart": true, "equipment": true, "name": true, "target": true,"createdBy":true,
 		"secondaryMuscles": true, "instructions": true, "gifUrl": true, "createdAt": true, "updatedAt": true, "sportId": true, "unitType": true,
 	}
 	for key := range tempMap {

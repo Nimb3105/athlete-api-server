@@ -18,6 +18,7 @@ type Exercise struct {
 	Instructions     []string           `bson:"instructions" json:"instructions"`
 	GifUrl           string             `bson:"gifUrl" json:"gifUrl"`
 	UnitType         string             `bson:"unitType" json:"unitType"`
+	CreatedBy        primitive.ObjectID `bson:"createdBy" json:"createdBy"`
 	CreatedAt        time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt        time.Time          `bson:"updatedAt" json:"updatedAt"`
 }

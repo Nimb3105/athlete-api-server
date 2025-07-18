@@ -86,7 +86,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 	validFields := map[string]bool{
 		"email": true, "password": true, "fullName": true, "gender": true,
 		"phoneNumber": true, "dateOfBirth": true, "role": true, "status": true,
-		"createdAt": true, "updatedAt": true, "imageUrl": true, "sportId": true,"id":true,
+		"createdAt": true, "updatedAt": true, "imageUrl": true, "sportId": true, "id": true,
 	}
 	for key := range tempMap {
 		if !validFields[key] {
@@ -226,6 +226,6 @@ func (u *UserController) GetUnassignedAthletes(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	ctx.JSON(http.StatusOK, gin.H{"data": athletes})
 }

@@ -164,8 +164,6 @@ func main() {
 	routes.SetupMessageRoutes(r, messageController)
 	routes.SetupFoodRoutes(r, foodController)
 	routes.SetupNutritionPlanRoutes(r, nutritionPlanController)
-	//routes.SetupPerformanceRoutes(r, performanceController)
-	//routes.SetupProgressRoutes(r, progressController)
 	routes.SetupTeamMemberRoutes(r, temaMemberController)
 	routes.SetupTeamRoutes(r, teamController)
 	routes.SetupTournamentRoutes(r, tournamentController)

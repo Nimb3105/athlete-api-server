@@ -55,8 +55,8 @@ func (r *ExerciseRepository) GetByID(ctx context.Context, id string) (*models.Ex
 
 func (r *ExerciseRepository) GetAllBySportId(ctx context.Context, sportId string) ([]models.Exercise, error) {
 	// Filter by sportName field
-	objectID,err := primitive.ObjectIDFromHex(sportId)
-	if err != nil{
+	objectID, err := primitive.ObjectIDFromHex(sportId)
+	if err != nil {
 		return nil, err
 	}
 	filter := bson.M{"sportId": objectID}

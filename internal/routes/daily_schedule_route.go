@@ -13,7 +13,7 @@ func SetupDailyScheduleRoutes(router *gin.Engine, controller *controllers.DailyS
 		dailySchedule.GET("/:id", controller.GetByID)
 		dailySchedule.GET("/user/:userID/:day", controller.GetByUserID)
 		dailySchedule.GET("", controller.GetAll)
-		dailySchedule.PUT("", controller.Update)
+		dailySchedule.PUT(":id", controller.Update)
 		dailySchedule.DELETE("/:id", controller.Delete)
 		dailySchedule.GET("/creator/:creatorId", controller.GetByCreatorId)
 		dailySchedule.GET("/user/:userID/all", controller.GetAllDailySchedulesByUserId)

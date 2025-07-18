@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -23,9 +24,6 @@ func NewImageController() *ImageController {
 // UploadImage handles image and video uploads to the ./be/images directory
 func (ic *ImageController) UploadImage(ctx *gin.Context) {
 	// Limit file size to 50MB
-	const maxFileSize = 50 << 20 // 50MB
-	ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, maxFileSize)
-
 	file, err := ctx.FormFile("file")
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Yêu cầu tệp hình ảnh hoặc video"})
@@ -60,16 +58,19 @@ func (ic *ImageController) UploadImage(ctx *gin.Context) {
 		return
 	}
 
-	// Save file
 	filePath := filepath.Join(ic.StoragePath, safeFilename)
 	if err := ctx.SaveUploadedFile(file, filePath); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Không thể lưu tệp"})
 		return
 	}
 
-	// Return success message
+	// Tạo URL đầy đủ
+	fileURL := fmt.Sprintf("/images/%s", safeFilename)
+
+	// Trả về JSON chứa URL
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "Tải tệp thành công",
+		"url":     fileURL, // Trả về URL cho frontend
 	})
 }
 

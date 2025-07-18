@@ -48,7 +48,6 @@ func (c *DailyScheduleController) GetByCreatorId(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": schedules})
 }
 
-
 func (c *DailyScheduleController) Create(ctx *gin.Context) {
 	var bodyBytes []byte
 	if rawData, err := ctx.GetRawData(); err != nil {
@@ -67,7 +66,7 @@ func (c *DailyScheduleController) Create(ctx *gin.Context) {
 
 	// Danh sách field hợp lệ của DailySchedule
 	validFields := map[string]bool{
-		"id": true, "userId": true, "name": true, "note": true,"createdBy":true,
+		"id": true, "userId": true, "name": true, "note": true, "createdBy": true,
 		"startDate": true, "endDate": true, "createdAt": true, "updatedAt": true,
 		"trainingSchedules": true, "sportId": true, // thêm nếu có trong request
 	}
