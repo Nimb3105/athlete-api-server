@@ -118,8 +118,6 @@ func main() {
 	messageController := controllers.NewMessageController(messageService)
 	nutritionPlanController := controllers.NewNutritionPlanController(nutritionPlanService)
 	foodController := controllers.NewFoodController(foodService)
-	//performanceController := controllers.NewPerformanceController(performanceService)
-	//progressController := controllers.NewProgressController(progressService)
 	teamController := controllers.NewTeamController(teamService)
 	temaMemberController := controllers.NewTeamMemberController(temaMemberService)
 	tournamentController := controllers.NewTournamentController(tournamentService)
@@ -127,11 +125,10 @@ func main() {
 	coachAthleteController := controllers.NewCoachAthleteController(coachAthleteService)
 	dailyScheduleController := controllers.NewDailyScheduleController(dailyScheduleService)
 
-	// Khởi tạo router Gin
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"}, // Allow Flutter frontend
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Access-Control-Allow-Origin"},
@@ -143,7 +140,6 @@ func main() {
 	routes.SetupUserRoutes(r, userController)
 	routes.SetupCoachRoutes(r, coachController)
 	routes.SetupAthleteRoutes(r, athleteController)
-	//routes.SetupSportUserRoutes(r, sportUserController)
 	routes.SetupSportRoutes(r, sportController)
 	routes.SetupExerciseRoutes(r, exerciseController)
 	routes.SetupTrainingExerciseRoutes(r, trainingExerciseController)
